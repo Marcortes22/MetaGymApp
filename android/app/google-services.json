@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "48267953663",
+    "project_id": "metagymapp-923e8",
+    "storage_bucket": "metagymapp-923e8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:48267953663:android:40f621643349e37c08d3ca",
+        "android_client_info": {
+          "package_name": "com.example.gym_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCz3WozygBWwS-D0JuWrEXOlT6gRBS7lzc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
