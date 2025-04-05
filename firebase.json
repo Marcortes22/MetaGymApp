@@ -1,1 +1,25 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"metagymapp-923e8","appId":"1:48267953663:android:40f621643349e37c08d3ca","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"metagymapp-923e8","configurations":{"android":"1:48267953663:android:40f621643349e37c08d3ca","ios":"1:48267953663:ios:1ae258aeafd5d90408d3ca","macos":"1:48267953663:ios:1ae258aeafd5d90408d3ca","web":"1:48267953663:web:f501349b1695a10e08d3ca","windows":"1:48267953663:web:04a77f1cc046a01a08d3ca"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "metagymapp-923e8",
+          "appId": "1:48267953663:android:40f621643349e37c08d3ca",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "metagymapp-923e8",
+          "configurations": {
+            "android": "1:48267953663:android:40f621643349e37c08d3ca",
+            "ios": "1:48267953663:ios:1ae258aeafd5d90408d3ca",
+            "macos": "1:48267953663:ios:1ae258aeafd5d90408d3ca",
+            "web": "1:48267953663:web:f501349b1695a10e08d3ca",
+            "windows": "1:48267953663:web:04a77f1cc046a01a08d3ca"
+          }
+        }
+      }
+    }
+  }
+}
