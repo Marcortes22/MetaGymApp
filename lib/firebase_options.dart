@@ -26,17 +26,8 @@ class DefaultFirebaseOptions {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
-      case TargetPlatform.iOS:
-        return ios;
-      case TargetPlatform.macOS:
-        return macos;
       case TargetPlatform.windows:
         return windows;
-      case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -61,17 +52,6 @@ class DefaultFirebaseOptions {
     projectId: dotenv.env['PROJECT_ID']!,
     storageBucket: dotenv.env['STORAGE_BUCKET'],
   );
-
-  static FirebaseOptions get ios => FirebaseOptions(
-    apiKey: dotenv.env['IOS_API_KEY']!,
-    appId: dotenv.env['IOS_APP_ID']!,
-    messagingSenderId: dotenv.env['MESSAGING_SENDER_ID']!,
-    projectId: dotenv.env['PROJECT_ID']!,
-    storageBucket: dotenv.env['STORAGE_BUCKET'],
-    iosBundleId: dotenv.env['IOS_BUNDLE_ID'],
-  );
-
-  static FirebaseOptions get macos => ios;
 
   static FirebaseOptions get windows => FirebaseOptions(
     apiKey: dotenv.env['WEB_API_KEY']!,
