@@ -1,0 +1,21 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "metagymapp-923e8",
+          "appId": "1:48267953663:android:40f621643349e37c08d3ca",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "metagymapp-923e8",
+          "configurations": {
+            "android": "1:48267953663:android:40f621643349e37c08d3ca"
+          }
+        }
+      }
+    }
+  }
+}
