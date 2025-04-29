@@ -72,7 +72,6 @@ La aplicación utiliza **Firebase** como backend para las siguientes funcionalid
 - 🔐 **Autenticación** de usuarios con correo y contraseña.
 - ☁️ **Firestore** como base de datos en tiempo real para almacenar información de usuarios, rutinas y asistencia.
 - 📩 **Cloud Messaging** para el envío de notificaciones sobre vencimientos y renovaciones.
-- 🧠 **Firebase Storage** para almacenar imágenes o videos demostrativos de los ejercicios.
 
 > ✅ Firebase permite escalar la aplicación fácilmente, mantener la seguridad de los datos y reducir tiempos de desarrollo gracias a su integración fluida con Flutter.
 
