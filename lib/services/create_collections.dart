@@ -63,7 +63,7 @@ Future<void> createFakeGymData() async {
 
   // 3. Crear usuario fake
   await Future.wait([
-    firestore.collection('users').doc('6lZVfSOujcS2AvK41eMGF5h9ocz1').set({
+    firestore.collection('users').doc('tqkN7O5IMJdr1lHhJQYLbIXxad63').set({
       'user_id': '504420108',
       'name': 'Marco',
       'surname1': 'Cortés',

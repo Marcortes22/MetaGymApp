@@ -1,44 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:gym_app/routes/AppRoutes.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class ResetPasswordScreen extends StatefulWidget {
+  const ResetPasswordScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
-  bool _obscurePassword = true;
+  final _confirmController = TextEditingController();
+  String? _errorMessage;
 
-  String? _error;
+  void _submit() {
+    final password = _passwordController.text.trim();
+    final confirm = _confirmController.text.trim();
 
-  Future<void> _signIn() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-      if (!mounted) return;
-      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        _error = e.message;
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+    if (password.isEmpty || confirm.isEmpty) {
+      setState(() => _errorMessage = 'Todos los campos son obligatorios.');
+      return;
     }
+
+    if (password != confirm) {
+      setState(() => _errorMessage = 'Las contraseñas no coinciden.');
+      return;
+    }
+
+    // Aquí podrías llamar a tu lógica para guardar la nueva contraseña
+    // o redirigir al usuario al login/home
+
+    setState(() => _errorMessage = null);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('¡Contraseña actualizada con éxito!')),
+    );
+
+    // Simular redirección
+    Navigator.pop(context); // o pushReplacement a LoginScreen()
   }
 
   @override
@@ -51,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             const SizedBox(height: 20),
             GestureDetector(
-              onTap: () => Navigator.pushNamed(context, AppRoutes.welcome),
+              onTap: () => Navigator.pop(context),
               child: const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -67,15 +65,15 @@ class _LoginScreenState extends State<LoginScreen> {
             Center(child: Image.asset('assets/gym_logo.png', height: 100)),
             const SizedBox(height: 20),
             const Text(
-              'Iniciar Sesión',
+              'Restablecer Contraseña',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFFD1442F),
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Container(
               decoration: const BoxDecoration(
                 color: Color(0xFFD1442F),
@@ -86,16 +84,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Nombre de usuario o email',
+                    'Contraseña',
                     style: TextStyle(color: Colors.white),
                   ),
                   const SizedBox(height: 8),
                   TextField(
-                    controller: _emailController,
+                    controller: _passwordController,
+                    obscureText: true,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      hintText: 'example@example.com',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -103,48 +101,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Contraseña',
+                    'Confirmar contraseña',
                     style: TextStyle(color: Colors.white),
                   ),
                   const SizedBox(height: 8),
                   TextField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
+                    controller: _confirmController,
+                    obscureText: true,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: Colors.grey,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, AppRoutes.forgotPassword);
-                      },
-                      child: const Text(
-                        '¿Olvidaste tu contraseña?',
-                        style: TextStyle(
-                          color: Colors.orange,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
                       ),
                     ),
                   ),
@@ -154,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _signIn,
+                onPressed: _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: const Color(0xFFD1442F),
@@ -164,20 +132,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child:
-                    _isLoading
-                        ? const CircularProgressIndicator()
-                        : const Text(
-                          'Iniciar sesión',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
+                child: const Text(
+                  'Confirmar',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
-            if (_error != null)
+            if (_errorMessage != null)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
-                  "Credenciales incorrectas",
+                  _errorMessage!,
                   style: const TextStyle(color: Colors.red),
                   textAlign: TextAlign.center,
                 ),
