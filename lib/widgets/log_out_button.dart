@@ -14,6 +14,7 @@ class LogoutButton extends StatelessWidget {
         try {
           await FirebaseAuth.instance.signOut();
           if (!context.mounted) return;
+          Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
         } catch (e) {
           if (!context.mounted) return;
           ScaffoldMessenger.of(

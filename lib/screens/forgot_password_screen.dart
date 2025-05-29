@@ -1,42 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:gym_app/routes/AppRoutes.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _isLoading = false;
-  bool _obscurePassword = true;
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  bool _isSending = false;
+  String? _message;
 
-  String? _error;
-
-  Future<void> _signIn() async {
+  Future<void> _sendPasswordResetEmail() async {
     setState(() {
-      _isLoading = true;
-      _error = null;
+      _isSending = true;
+      _message = null;
     });
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await FirebaseAuth.instance.sendPasswordResetEmail(
         email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
       );
-      if (!mounted) return;
-      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+      setState(() {
+        _message = 'Revisa tu correo para restablecer tu contraseña.';
+      });
     } on FirebaseAuthException catch (e) {
       setState(() {
-        _error = e.message;
+        _message = e.message;
       });
     } finally {
       setState(() {
-        _isLoading = false;
+        _isSending = false;
       });
     }
   }
@@ -51,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             const SizedBox(height: 20),
             GestureDetector(
-              onTap: () => Navigator.pushNamed(context, AppRoutes.welcome),
+              onTap: () => Navigator.pop(context),
               child: const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -67,15 +63,21 @@ class _LoginScreenState extends State<LoginScreen> {
             Center(child: Image.asset('assets/gym_logo.png', height: 100)),
             const SizedBox(height: 20),
             const Text(
-              'Iniciar Sesión',
+              '¿Olvidaste Tu Contraseña?',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFFD1442F),
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
+            const Text(
+              'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
             Container(
               decoration: const BoxDecoration(
                 color: Color(0xFFD1442F),
@@ -86,12 +88,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Nombre de usuario o email',
+                    'Ingresa tu correo electronico',
                     style: TextStyle(color: Colors.white),
                   ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
@@ -101,60 +104,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Contraseña',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: Colors.grey,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, AppRoutes.forgotPassword);
-                      },
-                      child: const Text(
-                        '¿Olvidaste tu contraseña?',
-                        style: TextStyle(
-                          color: Colors.orange,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
             Container(
               padding: const EdgeInsets.all(24),
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _signIn,
+                onPressed: _isSending ? null : _sendPasswordResetEmail,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: const Color(0xFFD1442F),
@@ -165,20 +121,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 child:
-                    _isLoading
+                    _isSending
                         ? const CircularProgressIndicator()
                         : const Text(
-                          'Iniciar sesión',
+                          'Continuar',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
               ),
             ),
-            if (_error != null)
+            if (_message != null)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
-                  "Credenciales incorrectas",
-                  style: const TextStyle(color: Colors.red),
+                  _message!,
+                  style: TextStyle(
+                    color:
+                        _message!.startsWith('Revisa')
+                            ? Colors.green
+                            : Colors.red,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
