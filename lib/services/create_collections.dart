@@ -130,7 +130,50 @@ Future<void> createFakeGymData() async {
       'dateOfBirth': '1995-06-15',
       'profilePictureUrl': null,
     }),
+
+ firestore.collection('users').doc('MTTEPxJPr9dnBWSidhIVSo6Z8mA2').set({
+      'user_id': '503s420108',
+      'name': 'Stward',
+      'surname1': 'Serrano',
+      'surname2': 'Sanchez',
+      'email': 'stwardserrano@gmail.com',
+      'phone': '555-1234',
+      "roles": [
+        {"id": "cli", "name": "Cliente"},
+        {"id": "own", "name": "Dueño"},
+        {"id": "sec", "name": "Secretario"},
+        {"id": "coa", "name": "Entrenador"},
+      ],
+      'membershipId': 'monthly_plan',
+      'height': 175,
+      'weight': 72,
+      'dateOfBirth': '1995-06-15',
+      'profilePictureUrl': null,
+    }),
+
+ firestore.collection('users').doc('TkqFOlADfDVMqAotrC77kjfsjEo1').set({
+      'user_id': '503s420698',
+      'name': 'Fabiola',
+      'surname1': 'Carrera',
+      'surname2': 'Carrillo',
+      'email': 'fabiola@gmail.com',
+      'phone': '555-1234',
+      "roles": [
+        {"id": "cli", "name": "Cliente"},
+        {"id": "own", "name": "Dueño"},
+        {"id": "sec", "name": "Secretario"},
+        {"id": "coa", "name": "Entrenador"},
+      ],
+      'membershipId': 'monthly_plan',
+      'height': 175,
+      'weight': 72,
+      'dateOfBirth': '1995-06-15',
+      'profilePictureUrl': null,
+    }),
+
   ]);
+
+
 
   // 4. Crear suscripción
   await firestore.collection('subscriptions').add({
