@@ -21,4 +21,38 @@ class MembershipService {
     if (!doc.exists) return null;
     return Membership.fromMap(doc.id, doc.data() as Map<String, dynamic>);
   }
+
+  Future<void> createMembership({
+    required String name,
+    required double price,
+    required int durationDays,
+    required String description,
+  }) async {
+    await _collection.add({
+      'name': name,
+      'price': price,
+      'durationDays': durationDays,
+      'description': description,
+      'createdAt': DateTime.now(),
+    });
+  }
+
+  Future<void> updateMembership({
+    required String id,
+    required String name,
+    required double price,
+    required int durationDays,
+    required String description,
+  }) async {
+    await _collection.doc(id).update({
+      'name': name,
+      'price': price,
+      'durationDays': durationDays,
+      'description': description,
+    });
+  }
+
+  Future<void> deleteMembership(String id) async {
+    await _collection.doc(id).delete();
+  }
 }
