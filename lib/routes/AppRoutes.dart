@@ -10,6 +10,7 @@ import 'package:gym_app/screens/auth/welcome_screen.dart';
 import 'package:gym_app/screens/auth/forgot_password_screen.dart';
 import 'package:gym_app/screens/auth/reset_password_screen.dart';
 import 'package:gym_app/screens/auth/membership_screen.dart';
+import 'package:gym_app/screens/owner/plans_screen.dart' show PlansScreen;
 
 class AppRoutes {
   static const String welcome = '/welcome';
@@ -21,6 +22,7 @@ class AppRoutes {
   static const String ownerHome = '/owner-home';
   static const String secretaryHome = '/secretary-home';
   static const String memberships = '/memberships';
+  static const String plans = '/plans';
 
   static Map<String, WidgetBuilder> routes = {
     welcome: (_) => const WelcomeScreen(),
@@ -32,5 +34,6 @@ class AppRoutes {
     ownerHome: (_) => const OwnerHomeScreen(),
     secretaryHome: (_) => const SecretaryHomeScreen(),
     memberships: (_) => const MembershipScreen(),
+    plans: (_) => const PlansScreen(),
   };
 }

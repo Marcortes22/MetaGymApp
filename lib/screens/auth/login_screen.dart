@@ -49,7 +49,8 @@ class _LoginScreenState extends State<LoginScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFFFF8C42)),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed:
+              () => Navigator.pushReplacementNamed(context, AppRoutes.welcome),
         ),
       ),
       body: SafeArea(
