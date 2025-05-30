@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gym_app/routes/AppRoutes.dart';
 import 'package:gym_app/services/create_collections.dart';
-import 'login_screen.dart'; // asegurate de importar tu LoginScreen
+//import 'login_screen.dart'; // asegurate de importar tu LoginScreen
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
