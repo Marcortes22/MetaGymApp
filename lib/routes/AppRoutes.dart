@@ -1,15 +1,15 @@
 // lib/app_routes.dart
 
 import 'package:flutter/material.dart';
-import 'package:gym_app/screens/client_home_screen.dart';
-import 'package:gym_app/screens/coach_home_screen.dart';
-import 'package:gym_app/screens/login_screen.dart';
+import 'package:gym_app/screens/Client/client_home_screen.dart';
+import 'package:gym_app/screens/Coach/coach_home_screen.dart';
+import 'package:gym_app/screens/Auth/login_screen.dart';
 // import 'package:gym_app/screens/home_screen.dart';
-import 'package:gym_app/screens/owner_home_screen.dart';
-import 'package:gym_app/screens/secretary_home_screen.dart';
-import 'package:gym_app/screens/welcome_screen.dart';
-import 'package:gym_app/screens/forgot_password_screen.dart';
-import 'package:gym_app/screens/reset_password_screen.dart';
+import 'package:gym_app/screens/Owner/owner_home_screen.dart';
+import 'package:gym_app/screens/secretary/secretary_home_screen.dart';
+import 'package:gym_app/screens/Auth/welcome_screen.dart';
+import 'package:gym_app/screens/Auth/forgot_password_screen.dart';
+import 'package:gym_app/screens/Auth/reset_password_screen.dart';
 
 class AppRoutes {
   static const String welcome = '/welcome';
