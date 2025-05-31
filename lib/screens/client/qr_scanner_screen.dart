@@ -55,14 +55,24 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
     try {
       // First, try to check-in with the QR code
-      final userId = await _attendanceService.checkInWithQR(data);
+      final response = await _attendanceService.checkInWithQR(data);
 
-      if (userId != null) {
+      if (response['success']) {
         // Then fetch the user's name
+        final userId = response['userId'];
         final userName = await _userService.getUserName(userId);
         final displayName = userName ?? 'Usuario';
 
-        _showMessage('¡Bienvenido/a, $displayName!');
+        // Check if there's a subscription warning
+        String message = '¡Bienvenido/a, $displayName!';
+        bool hasWarning = false;
+
+        if (response.containsKey('warning')) {
+          message += '\n${response['warning']}';
+          hasWarning = true;
+        }
+
+        _showMessage(message, isError: hasWarning);
         setState(() {
           _hasScanned = true;
         }); // Go back to client home after a delay
@@ -72,12 +82,14 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           }
         });
       } else {
-        _showMessage('QR no válido. Intentelo nuevamente.', isError: true);
+        // Show the error message from the response
+        _showMessage(response['message'], isError: true);
         setState(() {
           _processing = false;
         });
       }
     } catch (e) {
+      // Handle any unexpected errors
       _showMessage('Error: ${e.toString()}', isError: true);
       setState(() {
         _processing = false;

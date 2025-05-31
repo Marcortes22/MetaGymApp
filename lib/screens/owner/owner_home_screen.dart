@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gym_app/routes/AppRoutes.dart';
+import 'package:gym_app/widgets/ActivateTotenModeButton.dart';
 
 class OwnerHomeScreen extends StatelessWidget {
   const OwnerHomeScreen({super.key});
@@ -58,6 +59,7 @@ class OwnerHomeScreen extends StatelessWidget {
           },
         ),
         actions: [
+          const ActivateTotenModeButton(),
           IconButton(
             icon: const Icon(
               Icons.notifications_none,
@@ -155,6 +157,7 @@ class OwnerHomeScreen extends StatelessWidget {
                   Navigator.pushNamed(context, AppRoutes.users);
                 },
               ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
