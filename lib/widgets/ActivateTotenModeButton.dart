@@ -7,7 +7,8 @@ import 'package:gym_app/routes/AppRoutes.dart';
 class ActivateTotenModeButton extends StatelessWidget {
   final Color? color;
 
-  const ActivateTotenModeButton({super.key, this.color});  Future<void> activarModoTotenYDeslogear(BuildContext context) async {
+  const ActivateTotenModeButton({super.key, this.color});
+  Future<void> activarModoTotenYDeslogear(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     // Set the totem mode flag to true
     await prefs.setBool('modo_toten', true);
@@ -21,11 +22,10 @@ class ActivateTotenModeButton extends StatelessWidget {
           backgroundColor: Colors.green,
         ),
       );
-        // Navigate directly to check-in screen
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        AppRoutes.checkIn, 
-        (route) => false
-      );
+      // Navigate directly to check-in screen
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.checkIn, (route) => false);
     }
   }
 
@@ -42,23 +42,27 @@ class ActivateTotenModeButton extends StatelessWidget {
         );
       },
     );
-  }  @override
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Check if this button is in a home screen (where we need it to be more compact)
     final currentRoute = ModalRoute.of(context)?.settings.name;
-    final isInHomeScreen = currentRoute == AppRoutes.clientHome ||
-                          currentRoute == AppRoutes.ownerHome ||
-                          currentRoute == AppRoutes.coachHome ||
-                          currentRoute == AppRoutes.secretaryHome;
-    
+    final isInHomeScreen =
+        currentRoute == AppRoutes.clientHome ||
+        currentRoute == AppRoutes.ownerHome ||
+        currentRoute == AppRoutes.coachHome ||
+        currentRoute == AppRoutes.secretaryHome;
+
     // Get screen dimensions
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
-    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-    
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
     // Decide on layout compactness
     final useCompactLayout = isSmallScreen || isLandscape || isInHomeScreen;
-    
+
     return Container(
       // Use minimal margin when in header/navbar
       margin: EdgeInsets.symmetric(horizontal: isInHomeScreen ? 2 : 8),
@@ -70,13 +74,16 @@ class ActivateTotenModeButton extends StatelessWidget {
         ),
         // Use smaller radius in header for a more compact look
         borderRadius: BorderRadius.circular(isInHomeScreen ? 15 : 20),
-        boxShadow: isInHomeScreen ? [] : [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow:
+            isInHomeScreen
+                ? []
+                : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -88,8 +95,8 @@ class ActivateTotenModeButton extends StatelessWidget {
           child: Padding(
             // Use much smaller padding when in header
             padding: EdgeInsets.symmetric(
-              horizontal: useCompactLayout ? 8 : 12, 
-              vertical: isInHomeScreen ? 3 : (useCompactLayout ? 4 : 6)
+              horizontal: useCompactLayout ? 8 : 12,
+              vertical: isInHomeScreen ? 3 : (useCompactLayout ? 4 : 6),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -102,12 +109,17 @@ class ActivateTotenModeButton extends StatelessWidget {
                     size: useCompactLayout ? 14 : 16,
                   ),
                 if (!(isInHomeScreen && isSmallScreen))
-                  SizedBox(width: useCompactLayout ? 2 : 4),                Text(
-                  isInHomeScreen ? "Modo Asistencia" : 
-                  (useCompactLayout ? "Modo Asistencia" : "Activar Modo Asistencia"),
+                  SizedBox(width: useCompactLayout ? 2 : 4),
+                Text(
+                  isInHomeScreen
+                      ? "Modo Asistencia"
+                      : (useCompactLayout
+                          ? "Modo Asistencia"
+                          : "Activar Modo Asistencia"),
                   style: TextStyle(
                     color: color ?? Colors.white,
-                    fontSize: isInHomeScreen ? 10 : (useCompactLayout ? 11 : 13),
+                    fontSize:
+                        isInHomeScreen ? 10 : (useCompactLayout ? 11 : 13),
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.3,
                   ),

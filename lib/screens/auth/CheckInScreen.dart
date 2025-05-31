@@ -91,9 +91,10 @@ class _CheckInScreenState extends State<CheckInScreen>
     }
     try {
       // Check in or out based on the current mode
-      final response = _isCheckOutMode
-          ? await _attendanceService.checkOutWithPin(_pin)
-          : await _attendanceService.checkInWithPin(_pin);
+      final response =
+          _isCheckOutMode
+              ? await _attendanceService.checkOutWithPin(_pin)
+              : await _attendanceService.checkInWithPin(_pin);
 
       if (!response['success']) {
         _showMessage(response['message']);
@@ -102,16 +103,16 @@ class _CheckInScreenState extends State<CheckInScreen>
       }
 
       // Get the userId from the response
-      final userId = response['userId'];      // Then fetch the user's name
+      final userId = response['userId']; // Then fetch the user's name
       final userName = await _userService.getUserName(userId);
       final displayName =
           userName ?? 'Usuario'; // Show success animation with user's name
-      
+
       // Different messages for check-in vs check-out
       String messageText;
       Color backgroundColor = Colors.green;
       IconData icon = Icons.check_circle;
-      
+
       if (_isCheckOutMode) {
         // Check-out success message with duration if available
         messageText = "¡Hasta pronto, $displayName!";
@@ -305,59 +306,94 @@ class _CheckInScreenState extends State<CheckInScreen>
       ),
     );
   }
+
   // No QR code scanning functionality  @override
-  Widget build(BuildContext context) {    // Calculate responsive dimensions
+  Widget build(BuildContext context) {
+    // Calculate responsive dimensions
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     final isLandscape = mediaQuery.orientation == Orientation.landscape;
     final isSmallScreen = isLandscape ? screenHeight < 400 : screenWidth < 400;
-    final isMediumScreen = isLandscape 
-        ? screenHeight >= 400 && screenHeight < 600 
-        : screenWidth >= 400 && screenWidth < 600;
+    final isMediumScreen =
+        isLandscape
+            ? screenHeight >= 400 && screenHeight < 600
+            : screenWidth >= 400 && screenWidth < 600;
 
     // Responsive sizing - use smaller dimension for consistent sizing
     final buttonSizeBase = isLandscape ? screenHeight : screenWidth;
-    final buttonSize = isSmallScreen
-        ? buttonSizeBase * (isLandscape ? 0.12 : 0.15)
-        : isMediumScreen
+    final buttonSize =
+        isSmallScreen
+            ? buttonSizeBase * (isLandscape ? 0.12 : 0.15)
+            : isMediumScreen
             ? buttonSizeBase * (isLandscape ? 0.10 : 0.12)
             : buttonSizeBase * (isLandscape ? 0.07 : 0.08);
-            
-    final pinBoxSize = isSmallScreen
-        ? buttonSizeBase * (isLandscape ? 0.07 : 0.08)
-        : isMediumScreen
+
+    final pinBoxSize =
+        isSmallScreen
+            ? buttonSizeBase * (isLandscape ? 0.07 : 0.08)
+            : isMediumScreen
             ? buttonSizeBase * (isLandscape ? 0.05 : 0.06)
             : buttonSizeBase * (isLandscape ? 0.04 : 0.05);
-            
-    final titleFontSize = isSmallScreen ? 32.0 : isMediumScreen ? 42.0 : 60.0;
-    final subtitleFontSize = isSmallScreen ? 14.0 : isMediumScreen ? 18.0 : 24.0;
-    
-    final buttonSpacing = isSmallScreen ? 10.0 : isMediumScreen ? 15.0 : 25.0;
-    final rowSpacing = isSmallScreen ? 8.0 : isMediumScreen ? 10.0 : 15.0;
-    final pinBoxMargin = isSmallScreen ? 8.0 : isMediumScreen ? 12.0 : 20.0;
+
+    final titleFontSize =
+        isSmallScreen
+            ? 32.0
+            : isMediumScreen
+            ? 42.0
+            : 60.0;
+    final subtitleFontSize =
+        isSmallScreen
+            ? 14.0
+            : isMediumScreen
+            ? 18.0
+            : 24.0;
+
+    final buttonSpacing =
+        isSmallScreen
+            ? 10.0
+            : isMediumScreen
+            ? 15.0
+            : 25.0;
+    final rowSpacing =
+        isSmallScreen
+            ? 8.0
+            : isMediumScreen
+            ? 10.0
+            : 15.0;
+    final pinBoxMargin =
+        isSmallScreen
+            ? 8.0
+            : isMediumScreen
+            ? 12.0
+            : 20.0;
 
     // QR code container sizing - use the smaller screen dimension for better layout
-    final qrMarginH = isSmallScreen 
-        ? (isLandscape ? screenHeight : screenWidth) * 0.05
-        : isMediumScreen 
+    final qrMarginH =
+        isSmallScreen
+            ? (isLandscape ? screenHeight : screenWidth) * 0.05
+            : isMediumScreen
             ? (isLandscape ? screenHeight : screenWidth) * 0.08
             : (isLandscape ? screenHeight : screenWidth) * 0.12;
-    
-    final qrHeight = isLandscape
-        ? screenHeight * 0.4  // Taller in landscape to maintain proportions
-        : (isSmallScreen 
-            ? screenHeight * 0.20 
-            : isMediumScreen 
-                ? screenHeight * 0.22 
+
+    final qrHeight =
+        isLandscape
+            ? screenHeight *
+                0.4 // Taller in landscape to maintain proportions
+            : (isSmallScreen
+                ? screenHeight * 0.20
+                : isMediumScreen
+                ? screenHeight * 0.22
                 : screenHeight * 0.25);
-            
-    final qrImageSize = isLandscape
-        ? screenHeight * 0.35  // Slightly smaller than container in landscape
-        : (isSmallScreen 
-            ? screenHeight * 0.15 
-            : isMediumScreen 
-                ? screenHeight * 0.17 
+
+    final qrImageSize =
+        isLandscape
+            ? screenHeight *
+                0.35 // Slightly smaller than container in landscape
+            : (isSmallScreen
+                ? screenHeight * 0.15
+                : isMediumScreen
+                ? screenHeight * 0.17
                 : screenHeight * 0.20);
 
     return WillPopScope(
@@ -377,12 +413,12 @@ class _CheckInScreenState extends State<CheckInScreen>
                   ),
                 ),
               ),
-              
+
               // Main content in a scrollable container for small screens
-              isSmallScreen 
-                ? SingleChildScrollView(
+              isSmallScreen
+                  ? SingleChildScrollView(
                     child: _buildMainContent(
-                      screenWidth, 
+                      screenWidth,
                       screenHeight,
                       isSmallScreen,
                       titleFontSize,
@@ -397,8 +433,8 @@ class _CheckInScreenState extends State<CheckInScreen>
                       rowSpacing,
                     ),
                   )
-                : _buildMainContent(
-                    screenWidth, 
+                  : _buildMainContent(
+                    screenWidth,
                     screenHeight,
                     isSmallScreen,
                     titleFontSize,
@@ -412,12 +448,12 @@ class _CheckInScreenState extends State<CheckInScreen>
                     buttonSpacing,
                     rowSpacing,
                   ),
-              
+
               // Botón para salir del modo toten
               Positioned(
-                top: 16, 
-                right: 16, 
-                child: DesactivateTotenModeButton()
+                top: 16,
+                right: 16,
+                child: DesactivateTotenModeButton(),
               ),
             ],
           ),
@@ -425,7 +461,7 @@ class _CheckInScreenState extends State<CheckInScreen>
       ),
     );
   }
-  
+
   Widget _buildMainContent(
     double screenWidth,
     double screenHeight,
@@ -451,10 +487,7 @@ class _CheckInScreenState extends State<CheckInScreen>
         children: [
           // App Logo and Header area
           SizedBox(height: screenHeight * 0.01),
-          Image.asset(
-            'assets/gym_logo.png',
-            height: screenHeight * 0.06,
-          ),
+          Image.asset('assets/gym_logo.png', height: screenHeight * 0.06),
           const SizedBox(height: 8),
 
           // Title
@@ -469,19 +502,16 @@ class _CheckInScreenState extends State<CheckInScreen>
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          
+
           // Subtitle
           Text(
-            _isCheckOutMode 
-              ? 'Ingrese su PIN o escanee el código QR para salir' 
-              : 'Ingrese su PIN o escanee el código QR desde el App',
-            style: TextStyle(
-              color: Colors.white70, 
-              fontSize: subtitleFontSize
-            ),
+            _isCheckOutMode
+                ? 'Ingrese su PIN o escanee el código QR para salir'
+                : 'Ingrese su PIN o escanee el código QR desde el App',
+            style: TextStyle(color: Colors.white70, fontSize: subtitleFontSize),
             textAlign: TextAlign.center,
           ),
-          
+
           // Toggle button
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -493,7 +523,10 @@ class _CheckInScreenState extends State<CheckInScreen>
                 });
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isCheckOutMode ? Colors.redAccent : const Color(0xFFFF8C42),
+                backgroundColor:
+                    _isCheckOutMode
+                        ? Colors.redAccent
+                        : const Color(0xFFFF8C42),
                 padding: EdgeInsets.symmetric(
                   horizontal: isSmallScreen ? 12 : 20,
                   vertical: isSmallScreen ? 8 : 10,
@@ -528,10 +561,7 @@ class _CheckInScreenState extends State<CheckInScreen>
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.1),
               borderRadius: BorderRadius.circular(15),
-              border: Border.all(
-                color: const Color(0xFFFF8C42),
-                width: 2,
-              ),
+              border: Border.all(color: const Color(0xFFFF8C42), width: 2),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFFFF8C42).withOpacity(0.2),
@@ -609,16 +639,17 @@ class _CheckInScreenState extends State<CheckInScreen>
                     ],
                   ),
                   child: Center(
-                    child: index < _displayPin.length
-                        ? Text(
-                          "•",
-                          style: TextStyle(
-                            fontSize: pinBoxSize * 0.6,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFFFF8C42),
-                          ),
-                        )
-                        : null,
+                    child:
+                        index < _displayPin.length
+                            ? Text(
+                              "•",
+                              style: TextStyle(
+                                fontSize: pinBoxSize * 0.6,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFFFF8C42),
+                              ),
+                            )
+                            : null,
                   ),
                 );
               }),
@@ -626,7 +657,7 @@ class _CheckInScreenState extends State<CheckInScreen>
           ),
 
           SizedBox(height: screenHeight * 0.02),
-          
+
           // Number Pad
           Column(
             children: [

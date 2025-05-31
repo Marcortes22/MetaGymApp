@@ -22,7 +22,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  
+
   // Initialize service locator
   ServiceLocator.setupServices();
 
@@ -44,39 +44,40 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late bool _isTotenMode;
   Timer? _totenModeCheckTimer;
-  
+
   @override
   void initState() {
     super.initState();
     _isTotenMode = widget.isToten;
     // Set up a listener to check for shared preferences changes
     _checkTotenModePreference();
-    
+
     // Set up periodic check for totem mode changes
     _totenModeCheckTimer = Timer.periodic(
       const Duration(seconds: 2), // Check every 2 seconds
       (_) => _checkTotenModePreference(),
     );
   }
-  
+
   @override
   void dispose() {
     _totenModeCheckTimer?.cancel();
     super.dispose();
   }
-  
+
   // Check totem mode preference periodically
   Future<void> _checkTotenModePreference() async {
     final prefs = await SharedPreferences.getInstance();
     final isTotenMode = prefs.getBool('modo_toten') ?? false;
-    
+
     if (mounted && _isTotenMode != isTotenMode) {
       setState(() {
         _isTotenMode = isTotenMode;
       });
     }
   }
-    @override
+
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Gym App',
@@ -113,7 +114,7 @@ class _RootPageState extends State<RootPage> {
   Future<void> _checkTotenMode() async {
     final prefs = await SharedPreferences.getInstance();
     final isTotenMode = prefs.getBool('modo_toten') ?? false;
-    
+
     if (mounted) {
       setState(() {
         _isTotenMode = isTotenMode;
@@ -126,16 +127,14 @@ class _RootPageState extends State<RootPage> {
   Widget build(BuildContext context) {
     // If we're still checking totem mode preference, show loading
     if (_checkingTotenMode) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    
+
     // If totem mode is active, show CheckInScreen directly
     if (_isTotenMode) {
       return const CheckInScreen();
     }
-    
+
     // Otherwise proceed with normal authentication flow
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),

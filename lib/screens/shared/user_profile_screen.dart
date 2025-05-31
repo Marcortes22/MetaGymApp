@@ -9,17 +9,15 @@ class UserProfileScreen extends StatefulWidget {
   final String? userId;
   final bool isAdminView;
 
-  const UserProfileScreen({
-    Key? key, 
-    this.userId,
-    this.isAdminView = false,
-  }) : super(key: key);
+  const UserProfileScreen({Key? key, this.userId, this.isAdminView = false})
+    : super(key: key);
 
   @override
   State<UserProfileScreen> createState() => _UserProfileScreenState();
 }
 
-class _UserProfileScreenState extends State<UserProfileScreen> with SingleTickerProviderStateMixin {
+class _UserProfileScreenState extends State<UserProfileScreen>
+    with SingleTickerProviderStateMixin {
   final ProfileService _profileService = ProfileService();
   final AttendanceService _attendanceService = AttendanceService();
   late TabController _tabController;
@@ -39,17 +37,22 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       final userId = widget.userId ?? _profileService.getCurrentUserId();
       if (userId != null) {
-        final profileData = await _profileService.getUserProfile(userId: userId);
-        final attendanceHistory = await _profileService.getUserAttendanceHistory(userId);
-        
+        final profileData = await _profileService.getUserProfile(
+          userId: userId,
+        );
+        final attendanceHistory = await _profileService
+            .getUserAttendanceHistory(userId);
+
         // Check if user has an ongoing session
-        final sessionStatus = await _attendanceService.hasOngoingSession(userId);
+        final sessionStatus = await _attendanceService.hasOngoingSession(
+          userId,
+        );
         final hasOngoing = sessionStatus['hasOngoing'] == true;
-        
+
         setState(() {
           _profileData = profileData;
           _attendanceHistory = attendanceHistory;
@@ -73,11 +76,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
   // Check if the user has admin privileges (owner, secretary, coach)
   bool _hasAdminAccess() {
     final roles = _profileData['roles'] as List<String>;
-    return roles.any((role) => 
-      role.toLowerCase().contains('admin') || 
-      role.toLowerCase().contains('owner') || 
-      role.toLowerCase().contains('secret') || 
-      role.toLowerCase().contains('coach'));
+    return roles.any(
+      (role) =>
+          role.toLowerCase().contains('admin') ||
+          role.toLowerCase().contains('owner') ||
+          role.toLowerCase().contains('secret') ||
+          role.toLowerCase().contains('coach'),
+    );
   }
 
   @override
@@ -95,15 +100,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
         elevation: 0,
         title: const Text(
           'Mi Perfil',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFFFF8C42)),
           onPressed: () => Navigator.of(context).pop(),
-        ),        actions: [
+        ),
+        actions: [
           // QR Scanner button for quick check-in
           if (!widget.isAdminView)
             IconButton(
@@ -130,50 +133,48 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
           ],
         ),
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF8C42)),
-              ),
-            )
-          : _profileData.containsKey('error')
+      body:
+          _isLoading
+              ? const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF8C42)),
+                ),
+              )
+              : _profileData.containsKey('error')
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 60,
-                        color: Colors.red,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        _profileData['error'],
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF8C42),
-                        ),
-                        onPressed: _loadUserProfile,
-                        child: const Text('Reintentar'),
-                      ),
-                    ],
-                  ),
-                )
-              : TabBarView(
-                  controller: _tabController,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildProfileInfo(),
-                    _buildMembershipInfo(),
-                    _checkAdminAccessForAttendance(),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 60,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _profileData['error'],
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF8C42),
+                      ),
+                      onPressed: _loadUserProfile,
+                      child: const Text('Reintentar'),
+                    ),
                   ],
                 ),
+              )
+              : TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildProfileInfo(),
+                  _buildMembershipInfo(),
+                  _checkAdminAccessForAttendance(),
+                ],
+              ),
     );
   }
 
@@ -188,11 +189,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.lock_outline,
-              size: 60,
-              color: Colors.grey[600],
-            ),
+            Icon(Icons.lock_outline, size: 60, color: Colors.grey[600]),
             const SizedBox(height: 16),
             const Text(
               "Acceso Restringido",
@@ -208,10 +205,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
               child: Text(
                 "Solo los administradores, secretarias y entrenadores pueden ver el historial de asistencia.",
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.white70, fontSize: 14),
               ),
             ),
           ],
@@ -223,7 +217,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
   Widget _buildProfileInfo() {
     final userInfo = _profileData['userInfo'] as Map<String, dynamic>;
     final roles = _profileData['roles'] as List<String>;
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -245,22 +239,26 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                         offset: const Offset(0, 5),
                       ),
                     ],
-                    image: userInfo['profilePictureUrl'] != null
-                        ? DecorationImage(
-                            image: NetworkImage(userInfo['profilePictureUrl']),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
+                    image:
+                        userInfo['profilePictureUrl'] != null
+                            ? DecorationImage(
+                              image: NetworkImage(
+                                userInfo['profilePictureUrl'],
+                              ),
+                              fit: BoxFit.cover,
+                            )
+                            : null,
                   ),
-                  child: userInfo['profilePictureUrl'] == null
-                      ? const Center(
-                          child: Icon(
-                            Icons.person,
-                            size: 60,
-                            color: Colors.white54,
-                          ),
-                        )
-                      : null,
+                  child:
+                      userInfo['profilePictureUrl'] == null
+                          ? const Center(
+                            child: Icon(
+                              Icons.person,
+                              size: 60,
+                              color: Colors.white54,
+                            ),
+                          )
+                          : null,
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -276,18 +274,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                 Wrap(
                   alignment: WrapAlignment.center,
                   spacing: 8.0,
-                  children: roles.map((role) {
-                    return Chip(
-                      backgroundColor: const Color(0xFFFF8C42).withOpacity(0.2),
-                      label: Text(
-                        role,
-                        style: const TextStyle(
-                          color: Color(0xFFFF8C42),
-                          fontSize: 12,
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                  children:
+                      roles.map((role) {
+                        return Chip(
+                          backgroundColor: const Color(
+                            0xFFFF8C42,
+                          ).withOpacity(0.2),
+                          label: Text(
+                            role,
+                            style: const TextStyle(
+                              color: Color(0xFFFF8C42),
+                              fontSize: 12,
+                            ),
+                          ),
+                        );
+                      }).toList(),
                 ),
               ],
             ),
@@ -323,7 +324,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
             _buildInfoRow('Altura', '${userInfo['height']} cm'),
             _buildInfoRow('Peso', '${userInfo['weight']} kg'),
             if (userInfo['height'] > 0 && userInfo['weight'] > 0)
-              _buildInfoRow('IMC', _calculateBMI(userInfo['height'], userInfo['weight'])),
+              _buildInfoRow(
+                'IMC',
+                _calculateBMI(userInfo['height'], userInfo['weight']),
+              ),
           ]),
           const SizedBox(height: 40),
         ],
@@ -333,12 +337,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
 
   String _calculateBMI(int heightCm, int weightKg) {
     if (heightCm <= 0 || weightKg <= 0) return 'N/A';
-    
+
     // Convert height from cm to m
     final heightM = heightCm / 100;
     // Calculate BMI: weight (kg) / height² (m²)
     final bmi = weightKg / (heightM * heightM);
-    
+
     String category;
     if (bmi < 18.5) {
       category = 'Bajo peso';
@@ -349,14 +353,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
     } else {
       category = 'Obesidad';
     }
-    
+
     return '${bmi.toStringAsFixed(1)} ($category)';
   }
 
   Widget _buildMembershipInfo() {
-    final membershipInfo = _profileData['membershipInfo'] as Map<String, dynamic>;
-    final attendanceStats = _profileData['attendanceStats'] as Map<String, dynamic>;
-    
+    final membershipInfo =
+        _profileData['membershipInfo'] as Map<String, dynamic>;
+    final attendanceStats =
+        _profileData['attendanceStats'] as Map<String, dynamic>;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -404,7 +410,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        membershipInfo['hasValidSubscription'] ? 'ACTIVA' : 'INACTIVA',
+                        membershipInfo['hasValidSubscription']
+                            ? 'ACTIVA'
+                            : 'INACTIVA',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -427,18 +435,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                 if (membershipInfo['daysRemaining'] > 0) ...[
                   const Text(
                     'Días restantes',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   const SizedBox(height: 8),
                   LinearProgressIndicator(
-                    value: membershipInfo['daysRemaining'] < 30
-                        ? membershipInfo['daysRemaining'] / 30
-                        : 1.0,
+                    value:
+                        membershipInfo['daysRemaining'] < 30
+                            ? membershipInfo['daysRemaining'] / 30
+                            : 1.0,
                     backgroundColor: Colors.white24,
-                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      Colors.white,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -447,7 +455,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                       color: Colors.white,
                       fontWeight: FontWeight.w500,
                     ),
-                  ),                ],
+                  ),
+                ],
                 if (membershipInfo['endDate'] != null) ...[
                   const SizedBox(height: 16),
                   Text(
@@ -457,26 +466,41 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                       fontSize: 14,
                     ),
                   ),
-                ],                if (membershipInfo['hasValidSubscription'] && !widget.isAdminView) ...[
+                ],
+                if (membershipInfo['hasValidSubscription'] &&
+                    !widget.isAdminView) ...[
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _hasOngoingSession ? Colors.redAccent : Colors.white,
+                        backgroundColor:
+                            _hasOngoingSession
+                                ? Colors.redAccent
+                                : Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                       icon: Icon(
-                        _hasOngoingSession ? Icons.exit_to_app : Icons.qr_code_scanner,
-                        color: _hasOngoingSession ? Colors.white : const Color(0xFFFF8C42),
+                        _hasOngoingSession
+                            ? Icons.exit_to_app
+                            : Icons.qr_code_scanner,
+                        color:
+                            _hasOngoingSession
+                                ? Colors.white
+                                : const Color(0xFFFF8C42),
                       ),
                       label: Text(
-                        _hasOngoingSession ? 'Registrar salida ahora' : 'Registrar entrada ahora',
+                        _hasOngoingSession
+                            ? 'Registrar salida ahora'
+                            : 'Registrar entrada ahora',
                         style: TextStyle(
-                          color: _hasOngoingSession ? Colors.white : const Color(0xFF1A1A1A),
+                          color:
+                              _hasOngoingSession
+                                  ? Colors.white
+                                  : const Color(0xFF1A1A1A),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -528,10 +552,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
           if (attendanceStats['lastCheckIn'] != null) ...[
             Text(
               'Último check-in: ${DateFormat('dd/MM/yyyy HH:mm').format(attendanceStats['lastCheckIn'])}',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.white70, fontSize: 14),
             ),
             const SizedBox(height: 8),
           ],
@@ -625,14 +646,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                 ),
               ),
               IconButton(
-                icon: const Icon(
-                  Icons.refresh,
-                  color: Color(0xFFFF8C42),
-                ),
+                icon: const Icon(Icons.refresh, color: Color(0xFFFF8C42)),
                 onPressed: () async {
-                  final userId = widget.userId ?? _profileService.getCurrentUserId();
+                  final userId =
+                      widget.userId ?? _profileService.getCurrentUserId();
                   if (userId != null) {
-                    final history = await _profileService.getUserAttendanceHistory(userId);
+                    final history = await _profileService
+                        .getUserAttendanceHistory(userId);
                     setState(() {
                       _attendanceHistory = history;
                     });
@@ -644,26 +664,23 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
         ),
         _attendanceHistory.isEmpty
             ? const Expanded(
-                child: Center(
-                  child: Text(
-                    'No hay registros de asistencia',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              )
-            : Expanded(
-                child: ListView.builder(
-                  itemCount: _attendanceHistory.length,
-                  padding: const EdgeInsets.all(8),
-                  itemBuilder: (context, index) {
-                    final attendance = _attendanceHistory[index];
-                    return _buildAttendanceCard(attendance);
-                  },
+              child: Center(
+                child: Text(
+                  'No hay registros de asistencia',
+                  style: TextStyle(color: Colors.white70, fontSize: 16),
                 ),
               ),
+            )
+            : Expanded(
+              child: ListView.builder(
+                itemCount: _attendanceHistory.length,
+                padding: const EdgeInsets.all(8),
+                itemBuilder: (context, index) {
+                  final attendance = _attendanceHistory[index];
+                  return _buildAttendanceCard(attendance);
+                },
+              ),
+            ),
       ],
     );
   }
@@ -673,9 +690,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: const Color(0xFF2A2A2A),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -711,10 +726,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                 ),
                 Text(
                   attendance['weekday'],
-                  style: const TextStyle(
-                    color: Colors.white60,
-                    fontSize: 14,
-                  ),
+                  style: const TextStyle(color: Colors.white60, fontSize: 14),
                 ),
               ],
             ),
@@ -727,10 +739,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                     children: [
                       const Text(
                         'Entrada',
-                        style: TextStyle(
-                          color: Colors.white60,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.white60, fontSize: 12),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -749,18 +758,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                     children: [
                       const Text(
                         'Salida',
-                        style: TextStyle(
-                          color: Colors.white60,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.white60, fontSize: 12),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         attendance['formattedCheckOutTime'],
                         style: TextStyle(
-                          color: attendance['formattedCheckOutTime'] == 'N/A'
-                              ? Colors.white38
-                              : Colors.white,
+                          color:
+                              attendance['formattedCheckOutTime'] == 'N/A'
+                                  ? Colors.white38
+                                  : Colors.white,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -773,18 +780,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                     children: [
                       const Text(
                         'Duración',
-                        style: TextStyle(
-                          color: Colors.white60,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.white60, fontSize: 12),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         attendance['duration'],
                         style: TextStyle(
-                          color: attendance['duration'] == 'N/A'
-                              ? Colors.white38
-                              : Colors.white,
+                          color:
+                              attendance['duration'] == 'N/A'
+                                  ? Colors.white38
+                                  : Colors.white,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -808,11 +813,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
       ),
       child: Column(
         children: [
-          Icon(
-            icon,
-            color: const Color(0xFFFF8C42),
-            size: 28,
-          ),
+          Icon(icon, color: const Color(0xFFFF8C42), size: 28),
           const SizedBox(height: 12),
           Text(
             value,
@@ -825,10 +826,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
           const SizedBox(height: 8),
           Text(
             title,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
-            ),
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
             textAlign: TextAlign.center,
           ),
         ],
@@ -846,19 +844,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
             width: 120,
             child: Text(
               label,
-              style: const TextStyle(
-                color: Colors.white60,
-                fontSize: 14,
-              ),
+              style: const TextStyle(color: Colors.white60, fontSize: 14),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-              ),
+              style: const TextStyle(color: Colors.white, fontSize: 14),
             ),
           ),
         ],
@@ -880,7 +872,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
       ),
     );
   }
-  
+
   Widget _buildWarningCard(String title, String message, IconData icon) {
     return Container(
       width: double.infinity,
@@ -892,11 +884,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
       ),
       child: Row(
         children: [
-          Icon(
-            icon,
-            color: Colors.amber,
-            size: 28,
-          ),
+          Icon(icon, color: Colors.amber, size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -913,10 +901,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                 const SizedBox(height: 4),
                 Text(
                   message,
-                  style: TextStyle(
-                    color: Colors.amber.shade100,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.amber.shade100, fontSize: 14),
                 ),
               ],
             ),
@@ -925,7 +910,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
       ),
     );
   }
-  
+
   Widget _buildSuccessCard(String title, String message, IconData icon) {
     return Container(
       width: double.infinity,
@@ -937,11 +922,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
       ),
       child: Row(
         children: [
-          Icon(
-            icon,
-            color: Colors.green,
-            size: 28,
-          ),
+          Icon(icon, color: Colors.green, size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -958,10 +939,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
                 const SizedBox(height: 4),
                 Text(
                   message,
-                  style: TextStyle(
-                    color: Colors.green.shade100,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.green.shade100, fontSize: 14),
                 ),
               ],
             ),
@@ -970,10 +948,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
       ),
     );
   }
+
   // Navigate to QR scanner screen for quick check-in
   Future<void> _navigateToQRScanner() async {
     final result = await Navigator.pushNamed(context, AppRoutes.qrScanner);
-    
+
     // If check-in was successful, refresh the profile data
     if (result == true) {
       _loadUserProfile();
@@ -983,46 +962,44 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
   void _showLogoutConfirmation(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Row(
-          children: [
-            Icon(Icons.logout, color: Color(0xFFFF8C42)),
-            SizedBox(width: 10),
-            Text(
-              'Cerrar Sesión',
-              style: TextStyle(color: Colors.white),
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: const Color(0xFF2A2A2A),
+            title: const Row(
+              children: [
+                Icon(Icons.logout, color: Color(0xFFFF8C42)),
+                SizedBox(width: 10),
+                Text('Cerrar Sesión', style: TextStyle(color: Colors.white)),
+              ],
             ),
-          ],
-        ),
-        content: const Text(
-          '¿Estás seguro de que deseas cerrar sesión?',
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF8C42),
+            content: const Text(
+              '¿Estás seguro de que deseas cerrar sesión?',
+              style: TextStyle(color: Colors.white70),
             ),
-            onPressed: () async {
-              Navigator.of(context).pop();
-              await _profileService.signOut();
-              if (mounted) {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/',
-                  (route) => false,
-                );
-              }
-            },
-            child: const Text('Cerrar Sesión'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF8C42),
+                ),
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await _profileService.signOut();
+                  if (mounted) {
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/',
+                      (route) => false,
+                    );
+                  }
+                },
+                child: const Text('Cerrar Sesión'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -1034,23 +1011,23 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
         _showMessage('No hay un usuario autenticado', isError: true);
         return;
       }
-      
+
       // Show loading indicator
       setState(() {
         _isLoading = true;
       });
-      
+
       // Process the check-out
       final response = await _attendanceService.checkOut(userId);
-      
+
       setState(() {
         _isLoading = false;
       });
-      
+
       if (response['success']) {
         _showMessage(
           'Salida registrada exitosamente. Tiempo en el gimnasio: ${response['duration']}',
-          isSuccess: true
+          isSuccess: true,
         );
         // Refresh profile data to update attendance status
         _loadUserProfile();
@@ -1064,31 +1041,36 @@ class _UserProfileScreenState extends State<UserProfileScreen> with SingleTicker
       _showMessage('Error al registrar la salida: $e', isError: true);
     }
   }
-  
+
   // Show message using SnackBar
-  void _showMessage(String message, {bool isError = false, bool isSuccess = false}) {
+  void _showMessage(
+    String message, {
+    bool isError = false,
+    bool isSuccess = false,
+  }) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
             Icon(
-              isError ? Icons.error_outline : 
-              isSuccess ? Icons.check_circle : 
-              Icons.info_outline,
+              isError
+                  ? Icons.error_outline
+                  : isSuccess
+                  ? Icons.check_circle
+                  : Icons.info_outline,
               color: Colors.white,
             ),
             const SizedBox(width: 12),
-            Expanded(
-              child: Text(message),
-            ),
+            Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: isError ? Colors.red : (isSuccess ? Colors.green : const Color(0xFFFF8C42)),
+        backgroundColor:
+            isError
+                ? Colors.red
+                : (isSuccess ? Colors.green : const Color(0xFFFF8C42)),
         duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
