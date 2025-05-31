@@ -14,12 +14,16 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
   final ProfileService _profileService = ProfileService();
   List<Map<String, dynamic>> _attendanceRecords = [];
   bool _isLoading = true;
-  DateTime _startDate = DateTime.now().subtract(const Duration(days: 30));
-  DateTime _endDate = DateTime.now();
+  late DateTime now;
+  late DateTime _startDate;
+  late DateTime _endDate;
 
   @override
   void initState() {
     super.initState();
+    now = DateTime.now();
+    _startDate = DateTime(now.year, now.month, now.day); // 00:00
+    _endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
     _loadAttendanceData();
   }
 
@@ -79,8 +83,22 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
 
     if (picked != null) {
       setState(() {
-        _startDate = picked.start;
-        _endDate = picked.end;
+        _startDate = DateTime(
+          picked.start.year,
+          picked.start.month,
+          picked.start.day,
+          0,
+          0,
+          0,
+        );
+        _endDate = DateTime(
+          picked.end.year,
+          picked.end.month,
+          picked.end.day,
+          23,
+          59,
+          59,
+        );
       });
       _loadAttendanceData();
     }
