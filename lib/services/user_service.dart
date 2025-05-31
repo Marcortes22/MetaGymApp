@@ -1,12 +1,30 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import '../models/user.dart';
+import '../services/service_locator.dart';
 
 /// Servicio para manejar todas las operaciones CRUD de usuarios
 class UserService {
-  final CollectionReference<Map<String, dynamic>> _collection =
-      FirebaseFirestore.instance.collection('users');
-  final auth.FirebaseAuth _auth = auth.FirebaseAuth.instance;
+  late final CollectionReference<Map<String, dynamic>> _collection;
+  late final auth.FirebaseAuth _auth;
+  
+  // Constructor with optional dependency injection
+  UserService({
+    FirebaseFirestore? firestore,
+    auth.FirebaseAuth? firebaseAuth,
+  }) {
+    final serviceLocator = ServiceLocator();
+    
+    final firestoreInstance = firestore ?? 
+                              serviceLocator.getService<FirebaseFirestore>() ?? 
+                              FirebaseFirestore.instance;
+                              
+    _collection = firestoreInstance.collection('users');
+    
+    _auth = firebaseAuth ?? 
+            serviceLocator.getService<auth.FirebaseAuth>() ?? 
+            auth.FirebaseAuth.instance;
+  }
 
   /// Crea un nuevo usuario con autenticación y datos en Firestore
   Future<void> createUser({
@@ -144,5 +162,78 @@ class UserService {
   /// Gets Firebase Auth current user ID
   String? getCurrentUserId() {
     return _auth.currentUser?.uid;
+  }
+
+  /// Get full user details including membership and subscription info
+  Future<Map<String, dynamic>> getUserFullDetails(String userId) async {
+    try {
+      // Get basic user info
+      final userDoc = await _collection.doc(userId).get();
+      if (!userDoc.exists || userDoc.data() == null) {
+        return {'error': 'Usuario no encontrado'};
+      }
+
+      final userData = userDoc.data()!;
+
+      // Get membership info if available
+      String? membershipName;
+      if (userData['membershipId'] != null) {
+        final membershipDoc = await FirebaseFirestore.instance
+            .collection('memberships')
+            .doc(userData['membershipId'])
+            .get();
+
+        if (membershipDoc.exists) {
+          membershipName = membershipDoc.data()?['name'];
+        }
+      }
+
+      // Get subscription info
+      DocumentSnapshot? activeSubscription;
+      final subscriptionQuery = await FirebaseFirestore.instance
+          .collection('subscriptions')
+          .where('userId', isEqualTo: userId)
+          .where('status', isEqualTo: 'active')
+          .orderBy('endDate', descending: true)
+          .limit(1)
+          .get();
+
+      if (subscriptionQuery.docs.isNotEmpty) {
+        activeSubscription = subscriptionQuery.docs.first;
+      }
+
+      // Format the roles for display
+      List<Map<String, dynamic>> userRoles = [];
+      if (userData['roles'] != null) {
+        userRoles = List<Map<String, dynamic>>.from(userData['roles']);
+      }
+
+      // Calculate user's age from date of birth
+      int age = 0;
+      if (userData['dateOfBirth'] != null && userData['dateOfBirth'] is String) {
+        final dob = DateTime.tryParse(userData['dateOfBirth']);
+        if (dob != null) {
+          final today = DateTime.now();
+          age = today.year - dob.year;
+          if (today.month < dob.month ||
+              (today.month == dob.month && today.day < dob.day)) {
+            age--;
+          }
+        }
+      }
+
+      // Build result map with all user data
+      return {
+        'id': userId,
+        'userData': userData,
+        'membershipName': membershipName,
+        'subscription': activeSubscription?.data(),
+        'roles': userRoles,
+        'age': age,
+      };
+    } catch (e) {
+      print('Error getting user details: $e');
+      return {'error': 'Error al obtener información del usuario: $e'};
+    }
   }
 }
