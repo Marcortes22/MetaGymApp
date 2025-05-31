@@ -88,20 +88,28 @@ class _CheckInScreenState extends State<CheckInScreen>
       return;
     }
     try {
-      // First check in with PIN
-      final userId = await _attendanceService.checkInWithPin(_pin);
+      // Check in with PIN and get response
+      final response = await _attendanceService.checkInWithPin(_pin);
 
-      if (userId == null) {
-        _showMessage("PIN no válido.");
+      if (!response['success']) {
+        _showMessage(response['message']);
         _clearPin();
         return;
       }
 
+      // Get the userId from the response
+      final userId = response['userId'];
+
       // Then fetch the user's name
       final userName = await _userService.getUserName(userId);
-      final displayName = userName ?? 'Usuario';
+      final displayName =
+          userName ?? 'Usuario'; // Show success animation with user's name
+      // Check if there's a subscription warning
+      String welcomeMessage = "¡Bienvenido/a, $displayName!";
+      if (response.containsKey('warning')) {
+        welcomeMessage += "\n${response['warning']}";
+      }
 
-      // Show success animation with user's name
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -110,7 +118,7 @@ class _CheckInScreenState extends State<CheckInScreen>
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  "¡Bienvenido/a, $displayName!",
+                  welcomeMessage,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 16,
@@ -120,7 +128,8 @@ class _CheckInScreenState extends State<CheckInScreen>
               ),
             ],
           ),
-          backgroundColor: Colors.green,
+          backgroundColor:
+              response.containsKey('warning') ? Colors.orange : Colors.green,
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -133,7 +142,12 @@ class _CheckInScreenState extends State<CheckInScreen>
       // Clear the PIN after success
       _clearPin();
     } catch (e) {
-      _showMessage("Error al verificar PIN: ${e.toString()}");
+      // Check if the error is due to already checked in today
+      if (e.toString().contains('Ya registraste tu asistencia hoy')) {
+        _showMessage("Ya registraste tu asistencia hoy.");
+      } else {
+        _showMessage("Error al verificar PIN: ${e.toString()}");
+      }
       _clearPin();
     }
   } // Function to get current user's ID using the service
