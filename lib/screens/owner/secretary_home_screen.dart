@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gym_app/services/create_collections.dart';
 import 'package:gym_app/widgets/log_out_button.dart';
+import 'package:gym_app/widgets/ActivateTotenModeButton.dart';
 
 class SecretaryHomeScreen extends StatelessWidget {
   const SecretaryHomeScreen({super.key});
@@ -20,7 +21,7 @@ class SecretaryHomeScreen extends StatelessWidget {
         //   },
         // ),
         title: const Text('Gym App'),
-        actions: const [LogoutButton()],
+        actions: const [ActivateTotenModeButton(), LogoutButton()],
       ),
       drawer: Drawer(
         // Add a ListView to the drawer. This ensures the user can scroll
@@ -60,13 +61,14 @@ class SecretaryHomeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text('Secretaria', style: TextStyle(fontSize: 20)),
-            // const SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () async {
                 await createFakeGymData();
               },
               child: const Text('Crear Datos Fake'),
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
