@@ -66,10 +66,11 @@ class OwnerHomeScreen extends StatelessWidget {
               color: Color(0xFFFF8C42),
             ),
             onPressed: () {},
-          ),
-          IconButton(
+          ),          IconButton(
             icon: const Icon(Icons.person_outline, color: Color(0xFFFF8C42)),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pushNamed(context, '/user-profile');
+            },
           ),
           const SizedBox(width: 8),
         ],
@@ -120,12 +121,11 @@ class OwnerHomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Row(
-                children: [
-                  Expanded(
+                children: [                  Expanded(
                     child: _buildOptionCard(
                       'Asistencias',
                       'assets/memberships/basic.jpg',
-                      onTap: () {},
+                      onTap: () => Navigator.pushNamed(context, '/all-attendance'),
                       height: 160,
                     ),
                   ),

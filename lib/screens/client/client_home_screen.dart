@@ -64,11 +64,10 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
             onPressed: () {
               // TODO: Implementar notificaciones
             },
-          ),
-          IconButton(
+          ),          IconButton(
             icon: const Icon(Icons.person, color: Color(0xFFFF8C42)),
             onPressed: () {
-              // TODO: Implementar perfil
+              Navigator.pushNamed(context, '/user-profile');
             },
           ),
           const SizedBox(width: 8),
