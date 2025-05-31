@@ -79,7 +79,8 @@ class KioskModeModal extends StatelessWidget {
             _FeatureItem(
               icon: Icons.qr_code,
               text: 'Mostrará el código QR y teclado numérico',
-            ),            _FeatureItem(
+            ),
+            _FeatureItem(
               icon: Icons.touch_app,
               text: 'Se activará inmediatamente sin necesidad de reiniciar',
             ),

@@ -60,10 +60,7 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
       context: context,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
-      initialDateRange: DateTimeRange(
-        start: _startDate,
-        end: _endDate,
-      ),
+      initialDateRange: DateTimeRange(start: _startDate, end: _endDate),
       builder: (context, child) {
         return Theme(
           data: ThemeData.dark().copyWith(
@@ -98,10 +95,7 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
         elevation: 0,
         title: const Text(
           'Registro de Asistencia',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFFFF8C42)),
@@ -127,24 +121,20 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
-                const Icon(
-                  Icons.filter_alt,
-                  color: Colors.white70,
-                  size: 16,
-                ),
+                const Icon(Icons.filter_alt, color: Colors.white70, size: 16),
                 const SizedBox(width: 8),
                 Text(
                   'Período: ${DateFormat('dd/MM/yyyy').format(_startDate)} - ${DateFormat('dd/MM/yyyy').format(_endDate)}',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
               ],
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             color: const Color(0xFF2A2A2A),
             child: const Row(
               children: [
@@ -199,29 +189,29 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
             ),
           ),
           Expanded(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF8C42)),
-                    ),
-                  )
-                : _attendanceRecords.isEmpty
+            child:
+                _isLoading
                     ? const Center(
-                        child: Text(
-                          'No hay registros de asistencia',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 16,
-                          ),
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFFFF8C42),
                         ),
-                      )
-                    : ListView.builder(
-                        itemCount: _attendanceRecords.length,
-                        itemBuilder: (context, index) {
-                          final record = _attendanceRecords[index];
-                          return _buildAttendanceRow(record);
-                        },
                       ),
+                    )
+                    : _attendanceRecords.isEmpty
+                    ? const Center(
+                      child: Text(
+                        'No hay registros de asistencia',
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
+                      ),
+                    )
+                    : ListView.builder(
+                      itemCount: _attendanceRecords.length,
+                      itemBuilder: (context, index) {
+                        final record = _attendanceRecords[index];
+                        return _buildAttendanceRow(record);
+                      },
+                    ),
           ),
         ],
       ),
@@ -235,10 +225,11 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => UserProfileScreen(
-              userId: record['userId'],
-              isAdminView: true,
-            ),
+            builder:
+                (context) => UserProfileScreen(
+                  userId: record['userId'],
+                  isAdminView: true,
+                ),
           ),
         );
       },
@@ -255,10 +246,7 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
               width: 80,
               child: Text(
                 record['formattedDate'],
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                ),
+                style: const TextStyle(color: Colors.white, fontSize: 13),
               ),
             ),
             const SizedBox(width: 16),
@@ -278,10 +266,7 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
               width: 60,
               child: Text(
                 record['formattedCheckInTime'],
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                ),
+                style: const TextStyle(color: Colors.white, fontSize: 13),
               ),
             ),
             const SizedBox(width: 8),
@@ -290,9 +275,10 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
               child: Text(
                 record['formattedCheckOutTime'],
                 style: TextStyle(
-                  color: record['formattedCheckOutTime'] == 'N/A'
-                      ? Colors.white38
-                      : Colors.white,
+                  color:
+                      record['formattedCheckOutTime'] == 'N/A'
+                          ? Colors.white38
+                          : Colors.white,
                   fontSize: 13,
                 ),
               ),

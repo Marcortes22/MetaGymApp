@@ -6,23 +6,25 @@ import '../services/service_locator.dart';
 class AttendanceService {
   late final CollectionReference _collection;
   late final SubscriptionService _subscriptionService;
-  
+
   // Constructor with optional dependency injection
   AttendanceService({
     FirebaseFirestore? firestore,
     SubscriptionService? subscriptionService,
   }) {
     final serviceLocator = ServiceLocator();
-    
-    final firestoreInstance = firestore ?? 
-                              serviceLocator.getService<FirebaseFirestore>() ?? 
-                              FirebaseFirestore.instance;
-    
+
+    final firestoreInstance =
+        firestore ??
+        serviceLocator.getService<FirebaseFirestore>() ??
+        FirebaseFirestore.instance;
+
     _collection = firestoreInstance.collection('attendances');
-    
-    _subscriptionService = subscriptionService ?? 
-                           serviceLocator.getService<SubscriptionService>() ?? 
-                           SubscriptionService();
+
+    _subscriptionService =
+        subscriptionService ??
+        serviceLocator.getService<SubscriptionService>() ??
+        SubscriptionService();
   }
 
   Future<void> register(Attendance attendance) async {
@@ -286,50 +288,51 @@ class AttendanceService {
   }) async {
     try {
       Query query = _collection.where('userId', isEqualTo: userId);
-      
+
       // Apply date filters if provided
       if (startDate != null) {
         query = query.where('date', isGreaterThanOrEqualTo: startDate);
       }
-      
+
       if (endDate != null) {
         query = query.where('date', isLessThanOrEqualTo: endDate);
       }
-      
+
       // Order by date descending (newest first) and apply limit
-      final snapshot = await query
-          .orderBy('date', descending: true)
-          .limit(limit)
-          .get();
-      
+      final snapshot =
+          await query.orderBy('date', descending: true).limit(limit).get();
+
       // Transform data for display
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
         final date = (data['date'] as Timestamp).toDate();
         final checkInTime = (data['checkInTime'] as Timestamp).toDate();
         DateTime? checkOutTime;
-        
+
         if (data['checkOutTime'] != null) {
           checkOutTime = (data['checkOutTime'] as Timestamp).toDate();
         }
-        
+
         // Calculate duration if check-out exists
         String duration = "N/A";
         if (checkOutTime != null) {
-          final durationMinutes = checkOutTime.difference(checkInTime).inMinutes;
+          final durationMinutes =
+              checkOutTime.difference(checkInTime).inMinutes;
           duration = "${durationMinutes ~/ 60}h ${durationMinutes % 60}m";
         }
-        
+
         return {
           'id': doc.id,
           'date': date,
           'formattedDate': "${date.day}/${date.month}/${date.year}",
           'checkInTime': checkInTime,
-          'formattedCheckInTime': "${checkInTime.hour.toString().padLeft(2, '0')}:${checkInTime.minute.toString().padLeft(2, '0')}",
+          'formattedCheckInTime':
+              "${checkInTime.hour.toString().padLeft(2, '0')}:${checkInTime.minute.toString().padLeft(2, '0')}",
           'checkOutTime': checkOutTime,
-          'formattedCheckOutTime': checkOutTime != null 
-              ? "${checkOutTime.hour.toString().padLeft(2, '0')}:${checkOutTime.minute.toString().padLeft(2, '0')}" 
-              : "N/A",
+          'formattedCheckOutTime':
+              checkOutTime != null
+                  ? "${checkOutTime.hour.toString().padLeft(2, '0')}:${checkOutTime.minute.toString().padLeft(2, '0')}"
+                  : "N/A",
           'duration': duration,
           'weekday': _getWeekdayName(date.weekday),
         };
@@ -348,12 +351,13 @@ class AttendanceService {
     final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
     // Query for attendance records for this user today
-    final snapshot = await _collection
-        .where('userId', isEqualTo: userId)
-        .where('date', isGreaterThanOrEqualTo: startOfDay)
-        .where('date', isLessThanOrEqualTo: endOfDay)
-        .limit(1)
-        .get();
+    final snapshot =
+        await _collection
+            .where('userId', isEqualTo: userId)
+            .where('date', isGreaterThanOrEqualTo: startOfDay)
+            .where('date', isLessThanOrEqualTo: endOfDay)
+            .limit(1)
+            .get();
 
     if (snapshot.docs.isEmpty) {
       return {'hasOngoing': false};
@@ -361,7 +365,7 @@ class AttendanceService {
 
     final attendanceData = snapshot.docs.first.data() as Map<String, dynamic>;
     final String attendanceId = snapshot.docs.first.id;
-    
+
     // If checkOutTime is null, user has an ongoing session
     if (attendanceData['checkOutTime'] == null) {
       return {
@@ -379,7 +383,7 @@ class AttendanceService {
     try {
       // First, check if the user has an ongoing session
       final ongoingSession = await hasOngoingSession(userId);
-      
+
       if (!ongoingSession['hasOngoing']) {
         return {
           'success': false,
@@ -390,10 +394,10 @@ class AttendanceService {
       final String attendanceId = ongoingSession['attendanceId'];
       final checkInTime = (ongoingSession['checkInTime'] as Timestamp).toDate();
       final checkOutTime = DateTime.now();
-      
+
       // Calculate session duration
       final durationMinutes = checkOutTime.difference(checkInTime).inMinutes;
-      
+
       // Update the attendance record with check-out time
       await _collection.doc(attendanceId).update({
         'checkOutTime': checkOutTime,
@@ -413,23 +417,24 @@ class AttendanceService {
       };
     }
   }
-  
+
   /// Process a check-out using PIN code
   Future<Map<String, dynamic>> checkOutWithPin(String pin) async {
     try {
       // Find user with this PIN
-      final userQuery = await FirebaseFirestore.instance
-          .collection('users')
-          .where('pin', isEqualTo: pin)
-          .limit(1)
-          .get();
+      final userQuery =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('pin', isEqualTo: pin)
+              .limit(1)
+              .get();
 
       if (userQuery.docs.isEmpty) {
         return {'success': false, 'message': 'PIN no válido'};
       }
 
       final userId = userQuery.docs.first.id;
-      
+
       // Process the check-out
       return await checkOut(userId);
     } catch (e) {
@@ -437,23 +442,24 @@ class AttendanceService {
       return {'success': false, 'message': 'Error: ${e.toString()}'};
     }
   }
-  
+
   /// Process a check-out using QR code
   Future<Map<String, dynamic>> checkOutWithQR(String qrData) async {
     try {
       // Find user with this QR data
-      final userQuery = await FirebaseFirestore.instance
-          .collection('users')
-          .where('qrCode', isEqualTo: qrData)
-          .limit(1)
-          .get();
+      final userQuery =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('qrCode', isEqualTo: qrData)
+              .limit(1)
+              .get();
 
       if (userQuery.docs.isEmpty) {
         return {'success': false, 'message': 'QR no válido'};
       }
 
       final userId = userQuery.docs.first.id;
-      
+
       // Process the check-out
       return await checkOut(userId);
     } catch (e) {
@@ -465,14 +471,22 @@ class AttendanceService {
   // Helper method to get weekday name in Spanish
   String _getWeekdayName(int weekday) {
     switch (weekday) {
-      case 1: return "Lunes";
-      case 2: return "Martes";
-      case 3: return "Miércoles";
-      case 4: return "Jueves";
-      case 5: return "Viernes";
-      case 6: return "Sábado";
-      case 7: return "Domingo";
-      default: return "";
+      case 1:
+        return "Lunes";
+      case 2:
+        return "Martes";
+      case 3:
+        return "Miércoles";
+      case 4:
+        return "Jueves";
+      case 5:
+        return "Viernes";
+      case 6:
+        return "Sábado";
+      case 7:
+        return "Domingo";
+      default:
+        return "";
     }
   }
 }

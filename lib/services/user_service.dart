@@ -7,23 +7,22 @@ import '../services/service_locator.dart';
 class UserService {
   late final CollectionReference<Map<String, dynamic>> _collection;
   late final auth.FirebaseAuth _auth;
-  
+
   // Constructor with optional dependency injection
-  UserService({
-    FirebaseFirestore? firestore,
-    auth.FirebaseAuth? firebaseAuth,
-  }) {
+  UserService({FirebaseFirestore? firestore, auth.FirebaseAuth? firebaseAuth}) {
     final serviceLocator = ServiceLocator();
-    
-    final firestoreInstance = firestore ?? 
-                              serviceLocator.getService<FirebaseFirestore>() ?? 
-                              FirebaseFirestore.instance;
-                              
+
+    final firestoreInstance =
+        firestore ??
+        serviceLocator.getService<FirebaseFirestore>() ??
+        FirebaseFirestore.instance;
+
     _collection = firestoreInstance.collection('users');
-    
-    _auth = firebaseAuth ?? 
-            serviceLocator.getService<auth.FirebaseAuth>() ?? 
-            auth.FirebaseAuth.instance;
+
+    _auth =
+        firebaseAuth ??
+        serviceLocator.getService<auth.FirebaseAuth>() ??
+        auth.FirebaseAuth.instance;
   }
 
   /// Crea un nuevo usuario con autenticación y datos en Firestore
@@ -178,10 +177,11 @@ class UserService {
       // Get membership info if available
       String? membershipName;
       if (userData['membershipId'] != null) {
-        final membershipDoc = await FirebaseFirestore.instance
-            .collection('memberships')
-            .doc(userData['membershipId'])
-            .get();
+        final membershipDoc =
+            await FirebaseFirestore.instance
+                .collection('memberships')
+                .doc(userData['membershipId'])
+                .get();
 
         if (membershipDoc.exists) {
           membershipName = membershipDoc.data()?['name'];
@@ -190,13 +190,14 @@ class UserService {
 
       // Get subscription info
       DocumentSnapshot? activeSubscription;
-      final subscriptionQuery = await FirebaseFirestore.instance
-          .collection('subscriptions')
-          .where('userId', isEqualTo: userId)
-          .where('status', isEqualTo: 'active')
-          .orderBy('endDate', descending: true)
-          .limit(1)
-          .get();
+      final subscriptionQuery =
+          await FirebaseFirestore.instance
+              .collection('subscriptions')
+              .where('userId', isEqualTo: userId)
+              .where('status', isEqualTo: 'active')
+              .orderBy('endDate', descending: true)
+              .limit(1)
+              .get();
 
       if (subscriptionQuery.docs.isNotEmpty) {
         activeSubscription = subscriptionQuery.docs.first;
@@ -210,7 +211,8 @@ class UserService {
 
       // Calculate user's age from date of birth
       int age = 0;
-      if (userData['dateOfBirth'] != null && userData['dateOfBirth'] is String) {
+      if (userData['dateOfBirth'] != null &&
+          userData['dateOfBirth'] is String) {
         final dob = DateTime.tryParse(userData['dateOfBirth']);
         if (dob != null) {
           final today = DateTime.now();

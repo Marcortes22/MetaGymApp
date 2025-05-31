@@ -4,15 +4,16 @@ import '../services/service_locator.dart';
 
 class SubscriptionService {
   late final CollectionReference _collection;
-  
+
   // Constructor with optional dependency injection
   SubscriptionService({FirebaseFirestore? firestore}) {
     final serviceLocator = ServiceLocator();
-    
-    final firestoreInstance = firestore ?? 
-                              serviceLocator.getService<FirebaseFirestore>() ?? 
-                              FirebaseFirestore.instance;
-    
+
+    final firestoreInstance =
+        firestore ??
+        serviceLocator.getService<FirebaseFirestore>() ??
+        FirebaseFirestore.instance;
+
     _collection = firestoreInstance.collection('subscriptions');
   }
 

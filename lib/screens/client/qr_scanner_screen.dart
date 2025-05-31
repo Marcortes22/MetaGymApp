@@ -23,12 +23,14 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     super.initState();
     _checkUserStatus();
   }
-  
+
   // Check if user already has ongoing session (to determine check-in vs check-out)
   Future<void> _checkUserStatus() async {
     final currentUserId = _userService.getCurrentUserId();
     if (currentUserId != null) {
-      final sessionStatus = await _attendanceService.hasOngoingSession(currentUserId);
+      final sessionStatus = await _attendanceService.hasOngoingSession(
+        currentUserId,
+      );
       if (mounted) {
         setState(() {
           _isCheckOut = sessionStatus['hasOngoing'] == true;
@@ -71,7 +73,8 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
     setState(() {
       _processing = true;
-    });    try {
+    });
+    try {
       // Check if the user has an ongoing session
       final currentUserId = _userService.getCurrentUserId();
       if (currentUserId == null) {
@@ -81,14 +84,17 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         });
         return;
       }
-      
-      final ongoingSession = await _attendanceService.hasOngoingSession(currentUserId);
+
+      final ongoingSession = await _attendanceService.hasOngoingSession(
+        currentUserId,
+      );
       final bool isCheckOut = ongoingSession['hasOngoing'] == true;
-      
+
       // Process check-in or check-out based on session status
-      final response = isCheckOut 
-          ? await _attendanceService.checkOutWithQR(data)
-          : await _attendanceService.checkInWithQR(data);
+      final response =
+          isCheckOut
+              ? await _attendanceService.checkOutWithQR(data)
+              : await _attendanceService.checkInWithQR(data);
 
       if (response['success']) {
         // Then fetch the user's name
@@ -98,7 +104,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
         String message;
         bool hasWarning = false;
-        
+
         if (isCheckOut) {
           // Check-out success message with duration if available
           message = '¡Hasta pronto, $displayName!';
@@ -148,11 +154,14 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),      appBar: AppBar(
+      backgroundColor: const Color(0xFF1A1A1A),
+      appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          _isCheckOut ? 'Escanear QR para Check-Out' : 'Escanear QR para Check-In',
+          _isCheckOut
+              ? 'Escanear QR para Check-Out'
+              : 'Escanear QR para Check-In',
           style: const TextStyle(
             color: Colors.white,
             fontSize: 20,
@@ -210,17 +219,20 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                               if (_processing && !_hasScanned)
                                 const CircularProgressIndicator(
                                   color: Color(0xFFFF8C42),
-                                ),                              if (_hasScanned)
+                                ),
+                              if (_hasScanned)
                                 Icon(
-                                  _isCheckOut ? Icons.exit_to_app : Icons.check_circle,
+                                  _isCheckOut
+                                      ? Icons.exit_to_app
+                                      : Icons.check_circle,
                                   color: Color(0xFFFF8C42),
                                   size: 80,
                                 ),
                               const SizedBox(height: 24),
-                Text(
+                              Text(
                                 _hasScanned
-                                    ? _isCheckOut 
-                                        ? '¡Check-out exitoso!' 
+                                    ? _isCheckOut
+                                        ? '¡Check-out exitoso!'
                                         : '¡Check-in exitoso!'
                                     : 'Procesando...',
                                 style: const TextStyle(
