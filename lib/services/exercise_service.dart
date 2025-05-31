@@ -14,4 +14,10 @@ class ExerciseService {
         )
         .toList();
   }
+
+  Future<Exercise?> getById(String id) async {
+    final doc = await _collection.doc(id).get();
+    if (!doc.exists) return null;
+    return Exercise.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+  }
 }
