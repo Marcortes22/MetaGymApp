@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../models/exercise.dart';
 import '../../../services/exercise_service.dart';
 import '../../../services/muscle_groups_service.dart';
@@ -15,6 +16,7 @@ class ExerciseDetailScreen extends StatefulWidget {
 class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   final ExerciseService _exerciseService = ExerciseService();
   final MuscleGroupService _muscleGroupsService = MuscleGroupService();
+
   Exercise? _exercise;
   String _muscleName = '';
 
@@ -27,13 +29,29 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   Future<void> _loadExercise() async {
     final exercise = await _exerciseService.getById(widget.exerciseId);
     if (exercise != null) {
-      final muscleGroup = await _muscleGroupsService.getMuscleGroup(
-        exercise.muscleGroupId,
-      );
+      final muscleGroup =
+          await _muscleGroupsService.getMuscleGroup(exercise.muscleGroupId);
       setState(() {
         _exercise = exercise;
         _muscleName = muscleGroup?.name ?? 'No especificado';
       });
+    }
+  }
+
+  /// Este método abre la URL del video usando url_launcher.
+  Future<void> _launchVideo() async {
+    if (_exercise == null || _exercise!.videoUrl.isEmpty) return;
+
+    final Uri videoUri = Uri.parse(_exercise!.videoUrl.trim());
+    if (await canLaunchUrl(videoUri)) {
+      await launchUrl(videoUri, mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo abrir el video.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
   }
 
@@ -85,6 +103,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Tarjeta de dificultad, grupo muscular y equipo
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -95,6 +114,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Dificultad
                     Row(
                       children: [
                         Icon(
@@ -114,12 +134,14 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
+                    // Grupo Muscular
                     _detailRow(
                       icon: Icons.sports_gymnastics,
                       label: 'Grupo Muscular',
                       value: _muscleName,
                     ),
                     const SizedBox(height: 12),
+                    // Equipo
                     _detailRow(
                       icon: Icons.fitness_center,
                       label: 'Equipo',
@@ -128,7 +150,10 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   ],
                 ),
               ),
+
               const SizedBox(height: 24),
+
+              // Título “Descripción”
               const Text(
                 'Descripción',
                 style: TextStyle(
@@ -138,6 +163,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 ),
               ),
               const SizedBox(height: 8),
+
+              // Contenedor con descripción
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -154,6 +181,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   ),
                 ),
               ),
+
+              // Si existe URL de video, mostrar sección "Video Tutorial"
               if (_exercise!.videoUrl.isNotEmpty) ...[
                 const SizedBox(height: 24),
                 const Text(
@@ -165,32 +194,38 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.play_circle_outline,
-                        color: Color(0xFFFF8C42),
-                        size: 24,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Ver video tutorial',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColor,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
+
+                // Hacemos el contenedor “clicable” con InkWell
+                InkWell(
+                  onTap: _launchVideo,
+                  borderRadius: BorderRadius.circular(15),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.play_circle_outline,
+                          color: Color(0xFFFF8C42),
+                          size: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Ver video tutorial',
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColor,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],
