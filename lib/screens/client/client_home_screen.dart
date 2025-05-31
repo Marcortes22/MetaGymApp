@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ClientHomeScreen extends StatelessWidget {
+class ClientHomeScreen extends StatefulWidget {
   const ClientHomeScreen({super.key});
 
+  @override
+  State<ClientHomeScreen> createState() => _ClientHomeScreenState();
+}
+
+class _ClientHomeScreenState extends State<ClientHomeScreen> {
   Future<String> _getUserName() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -82,13 +87,9 @@ class ClientHomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              _buildCard(
-                'Progreso',
-                'assets/memberships/premium.jpg',
-                () {
-                  // TODO: Navegar a la página de rutinas
-                },
-              ),
+              _buildCard('Progreso', 'assets/memberships/premium.jpg', () {
+                // TODO: Navegar a la página de rutinas
+              }),
               const SizedBox(height: 32),
               const Text(
                 'Planes',
@@ -130,10 +131,51 @@ class ClientHomeScreen extends StatelessWidget {
                   const SizedBox(width: 20),
                   Expanded(
                     child: _buildSmallCard(
-                      'QR',
+                      'Escanear QR',
                       'assets/memberships/basic.jpg',
-                      () {
-                        // TODO: Navegar a la página de pagos
+                      () async {
+                        // Navigate and wait for result
+                        final result = await Navigator.pushNamed(
+                          context,
+                          '/qr-scanner',
+                        );
+                        // After returning, rebuild screen to refresh data
+                        if (context.mounted) {
+                          setState(() {});
+
+                          // Show success message if check-in was successful
+                          if (result == true) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.check_circle,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    const Text(
+                                      'Check-in realizado con éxito',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                backgroundColor: Colors.green,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 10,
+                                ),
+                              ),
+                            );
+                          }
+                        }
                       },
                     ),
                   ),

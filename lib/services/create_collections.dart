@@ -1,4 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:math'; // For random PIN generation
+
+// Helper function to generate a random 4-digit PIN
+String generateRandomPin() {
+  final random = Random();
+  return (1000 + random.nextInt(9000)).toString(); // Ensures 4 digits
+}
 
 Future<void> createFakeGymData() async {
   final firestore = FirebaseFirestore.instance;
@@ -70,8 +77,12 @@ Future<void> createFakeGymData() async {
       'surname2': 'Castillo',
       'email': 'dueño@gmail.com',
       'phone': '555-1234',
+      'pin': '1234', // PIN de 4 dígitos para check-in
       "roles": [
+        {"id": "cli", "name": "Cliente"},
         {"id": "own", "name": "Dueño"},
+        {"id": "sec", "name": "Secretario"},
+        {"id": "coa", "name": "Entrenador"},
       ],
       // 'membershipId': '',
       'height': 175,
@@ -79,7 +90,6 @@ Future<void> createFakeGymData() async {
       'dateOfBirth': '1995-06-15',
       'profilePictureUrl': null,
     }),
-
     firestore.collection('users').doc('nqyLou9YxJP3LMgzYyzzhIUXGn32').set({
       'user_id': '504420408',
       'name': 'Ana',
@@ -87,6 +97,7 @@ Future<void> createFakeGymData() async {
       'surname2': 'Gómes',
       'email': 'entrenador@gmail.com',
       'phone': '555-1234',
+      'pin': generateRandomPin(), // Random 4-digit PIN for check-in
       "roles": [
         {"id": "coa", "name": "Entrenador"},
       ],
@@ -96,7 +107,6 @@ Future<void> createFakeGymData() async {
       'dateOfBirth': '1995-06-15',
       'profilePictureUrl': null,
     }),
-
     firestore.collection('users').doc('zNR4WyEE9wTwuXIzxWarbDZtv413').set({
       'user_id': '506420108',
       'name': 'Nicole',
@@ -104,6 +114,7 @@ Future<void> createFakeGymData() async {
       'surname2': 'Nuñez',
       'email': 'secretaria@gmail.com',
       'phone': '555-1234',
+      'pin': generateRandomPin(), // Random 4-digit PIN for check-in
       "roles": [
         {"id": "sec", "name": "Secretario"},
       ],
@@ -113,7 +124,6 @@ Future<void> createFakeGymData() async {
       'dateOfBirth': '1995-06-15',
       'profilePictureUrl': null,
     }),
-
     firestore.collection('users').doc('MT1ZtaCtYGfxWMEPYYRE8E93Lw83').set({
       'user_id': '503s420108',
       'name': 'Oscar',
@@ -121,6 +131,7 @@ Future<void> createFakeGymData() async {
       'surname2': 'Chavarria',
       'email': 'cliente@gmail.com',
       'phone': '555-1234',
+      'pin': generateRandomPin(), // Random 4-digit PIN for check-in
       "roles": [
         {"id": "cli", "name": "Cliente"},
       ],
@@ -130,14 +141,14 @@ Future<void> createFakeGymData() async {
       'dateOfBirth': '1995-06-15',
       'profilePictureUrl': null,
     }),
-
- firestore.collection('users').doc('MTTEPxJPr9dnBWSidhIVSo6Z8mA2').set({
+    firestore.collection('users').doc('MTTEPxJPr9dnBWSidhIVSo6Z8mA2').set({
       'user_id': '503s420108',
       'name': 'Stward',
       'surname1': 'Serrano',
       'surname2': 'Sanchez',
       'email': 'stwardserrano@gmail.com',
       'phone': '555-1234',
+      'pin': generateRandomPin(), // Random 4-digit PIN for check-in
       "roles": [
         {"id": "cli", "name": "Cliente"},
         {"id": "own", "name": "Dueño"},
@@ -150,14 +161,14 @@ Future<void> createFakeGymData() async {
       'dateOfBirth': '1995-06-15',
       'profilePictureUrl': null,
     }),
-
- firestore.collection('users').doc('TkqFOlADfDVMqAotrC77kjfsjEo1').set({
+    firestore.collection('users').doc('TkqFOlADfDVMqAotrC77kjfsjEo1').set({
       'user_id': '503s420698',
       'name': 'Fabiola',
       'surname1': 'Carrera',
       'surname2': 'Carrillo',
       'email': 'fabiola@gmail.com',
       'phone': '555-1234',
+      'pin': generateRandomPin(), // Random 4-digit PIN for check-in
       "roles": [
         {"id": "cli", "name": "Cliente"},
         {"id": "own", "name": "Dueño"},
@@ -170,13 +181,10 @@ Future<void> createFakeGymData() async {
       'dateOfBirth': '1995-06-15',
       'profilePictureUrl': null,
     }),
-
   ]);
 
-
-
   // 4. Crear suscripción
-  await firestore.collection('subscriptions').add({
+  await firestore.collection('subscriptions').doc('DefaultSubscriptions').set({
     'userId': 'MT1ZtaCtYGfxWMEPYYRE8E93Lw83',
     'membershipId': 'monthly_plan',
     'startDate': DateTime.now(),
@@ -190,7 +198,7 @@ Future<void> createFakeGymData() async {
   });
 
   // 5. Crear asistencia
-  await firestore.collection('attendances').add({
+  await firestore.collection('attendances').doc('defaultAttendance').set({
     'userId': 'MT1ZtaCtYGfxWMEPYYRE8E93Lw83',
     'date': DateTime.now(),
     'checkInTime': DateTime.now(),
@@ -214,7 +222,7 @@ Future<void> createFakeGymData() async {
   ]);
 
   // await Future.wait([
-  final benchPressRef = await firestore.collection('exercises').add({
+  await firestore.collection('exercises').doc('default1').set({
     "name": "Bench Press",
     "muscleGroupId": "muscle_chest",
     "equipment": "Barbell",
@@ -223,7 +231,7 @@ Future<void> createFakeGymData() async {
     "description":
         "Flat bench press with a barbell. Lie on a flat bench and press the barbell up and down.",
   });
-  final pullUpRef = await firestore.collection('exercises').add({
+  await firestore.collection('exercises').doc('default2').set({
     "name": "Pull-Up",
     "muscleGroupId": "muscle_back",
     "equipment": "Bodyweight",
@@ -231,7 +239,7 @@ Future<void> createFakeGymData() async {
     "videoUrl": "https://example.com/pullup",
     "description": "Bodyweight exercise to strengthen the back.",
   });
-  final squatRef = await firestore.collection('exercises').add({
+  await firestore.collection('exercises').doc('default3').set({
     "name": "Barbell Squat",
     "muscleGroupId": "muscle_legs",
     "equipment": "Barbell",
@@ -243,14 +251,14 @@ Future<void> createFakeGymData() async {
   // ]);
 
   // 6. Crear workout
-  final workoutRef = await firestore.collection('workouts').add({
+  final workoutRef = await firestore.collection('workouts').doc('defaultWorkout').set({
     "title": "Full Body Routine",
     "description":
         "Basic full body strength training routine targeting chest, back, and legs.",
     "exercises": [
-      {"exerciseId": benchPressRef.id, "repetitions": 12, "sets": 4},
-      {"exerciseId": pullUpRef.id, "repetitions": 8, "sets": 3},
-      {"exerciseId": squatRef.id, "repetitions": 10, "sets": 4},
+      {"exerciseId": 'default1', "repetitions": 12, "sets": 4},
+      {"exerciseId": 'default2', "repetitions": 8, "sets": 3},
+      {"exerciseId": 'default13', "repetitions": 10, "sets": 4},
     ],
     "createdBy":
         "nqyLou9YxJP3LMgzYyzzhIUXGn32", // opcional si quieres registrar quién creó
@@ -258,18 +266,21 @@ Future<void> createFakeGymData() async {
   });
 
   // 7. Asignar  workouts
-  await firestore.collection('assigned_workouts').add({
-    "userId": "MT1ZtaCtYGfxWMEPYYRE8E93Lw83",
-    "workoutId": workoutRef.id, // referencia al workout plantilla
-    "assignedAt": "2024-05-06T12:00:00Z",
-    "status": "pending", // ["pending", "completed"]
-    "notes": "Focus on form and technique.",
-  });
+  await firestore
+      .collection('assigned_workouts')
+      .doc('DefaultAssigned_workouts')
+      .set({
+        "userId": "MT1ZtaCtYGfxWMEPYYRE8E93Lw83",
+        "workoutId": 'defaultWorkout', // referencia al workout plantilla
+        "assignedAt": "2024-05-06T12:00:00Z",
+        "status": "pending", // ["pending", "completed"]
+        "notes": "Focus on form and technique.",
+      });
 
   // 8. Crear progreso
-  await firestore.collection('progress').add({
+  await firestore.collection('progress').doc('defaultProgress').set({
     "userId": "MT1ZtaCtYGfxWMEPYYRE8E93Lw83",
-    "exerciseId": benchPressRef.id,
+    "exerciseId": 'default1',
     "date": "2024-05-07T00:00:00Z",
     "setsCompleted": 4,
     "repetitionsAchieved": 12,
@@ -279,7 +290,7 @@ Future<void> createFakeGymData() async {
   });
 
   // 8. Crear clase
-  await firestore.collection('classes').add({
+  await firestore.collection('classes').doc('defaultClasses').set({
     'name': 'Spinning Class',
     'instructorId': 'nqyLou9YxJP3LMgzYyzzhIUXGn32',
     'startDateTime': DateTime.now().add(Duration(days: 3, hours: 18)),
