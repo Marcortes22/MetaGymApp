@@ -5,7 +5,7 @@ import 'package:gym_app/screens/client/client_home_screen.dart';
 import 'package:gym_app/screens/coach/coach_home_screen.dart';
 import 'package:gym_app/screens/auth/login_screen.dart';
 import 'package:gym_app/screens/owner/owner_home_screen.dart';
-import 'package:gym_app/screens/owner/secretary_home_screen.dart';
+import 'package:gym_app/screens/secretary/secretary_home_screen.dart';
 import 'package:gym_app/screens/auth/welcome_screen.dart';
 import 'package:gym_app/screens/auth/forgot_password_screen.dart';
 import 'package:gym_app/screens/auth/reset_password_screen.dart';
