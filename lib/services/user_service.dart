@@ -33,7 +33,9 @@ class UserService {
         surname2: '',
         email: email,
         phone: '',
-        roles: [{'id': role, 'name': _getRoleName(role)}],
+        roles: [
+          {'id': role, 'name': _getRoleName(role)},
+        ],
         height: 0,
         weight: 0,
         dateOfBirth: '',
@@ -53,6 +55,20 @@ class UserService {
       if (!doc.exists) return null;
       return User.fromMap(doc.id, doc.data()!);
     } on FirebaseException {
+      return null;
+    }
+  }
+
+  /// Obtiene solo el nombre de un usuario por su ID
+  Future<String?> getUserName(String userId) async {
+    try {
+      final doc = await _collection.doc(userId).get();
+      if (doc.exists && doc.data() != null) {
+        return doc.data()!['name'] as String?;
+      }
+      return null;
+    } catch (e) {
+      print('Error getting user name: $e');
       return null;
     }
   }
@@ -80,7 +96,10 @@ class UserService {
   }
 
   /// Actualiza los roles de un usuario
-  Future<void> updateUserRoles(String userId, List<Map<String, String>> roles) async {
+  Future<void> updateUserRoles(
+    String userId,
+    List<Map<String, String>> roles,
+  ) async {
     try {
       await _collection.doc(userId).update({'roles': roles});
     } on FirebaseException catch (e) {
@@ -119,5 +138,10 @@ class UserService {
       default:
         return 'Usuario';
     }
+  }
+
+  /// Gets Firebase Auth current user ID
+  String? getCurrentUserId() {
+    return _auth.currentUser?.uid;
   }
 }

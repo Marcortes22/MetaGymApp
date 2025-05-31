@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gym_app/firebase_options.dart';
+import 'package:gym_app/screens/auth/CheckInScreen.dart';
 import 'package:gym_app/screens/client/client_home_screen.dart';
 import 'package:gym_app/screens/coach/coach_home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,16 +13,24 @@ import 'package:gym_app/screens/owner/secretary_home_screen.dart';
 import 'package:gym_app/screens/auth/welcome_screen.dart';
 import 'package:gym_app/services/auth_service.dart';
 import 'package:gym_app/routes/AppRoutes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+
+  final prefs = await SharedPreferences.getInstance();
+  final bool isToten = prefs.getBool('modo_toten') ?? false;
+
+  runApp(MyApp(isToten: isToten));
+  // runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isToten;
+
+  const MyApp({super.key, required this.isToten});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +41,10 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       initialRoute: '/',
-      routes: {'/': (_) => const RootPage(), ...AppRoutes.routes},
+      routes: {
+        '/': (_) => isToten ? const CheckInScreen() : const RootPage(),
+        ...AppRoutes.routes,
+      },
     );
   }
 }

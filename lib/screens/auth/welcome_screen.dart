@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gym_app/routes/AppRoutes.dart';
+import 'package:gym_app/services/create_collections.dart';
+import 'package:gym_app/widgets/ActivateTotenModeButton.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -21,6 +23,12 @@ class WelcomeScreen extends StatelessWidget {
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
               ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await createFakeGymData();
+              },
+              child: const Text('Crear Datos Fake'),
             ),
             const SizedBox(height: 80),
             const Text(
@@ -112,6 +120,11 @@ class WelcomeScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                  ),
+                  const Positioned(
+                    top: 20,
+                    right: 20,
+                    child: ActivateTotenModeButton(),
                   ),
                 ],
               ),
