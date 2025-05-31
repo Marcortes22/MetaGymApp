@@ -19,4 +19,49 @@ class SubscriptionService {
         )
         .toList();
   }
+
+  // Get active subscription for a user
+  Future<Subscription?> getActiveSubscriptionForUser(String userId) async {
+    final snapshot =
+        await _collection
+            .where('userId', isEqualTo: userId)
+            .where('status', isEqualTo: 'active')
+            .orderBy('endDate', descending: true)
+            .limit(1)
+            .get();
+
+    if (snapshot.docs.isEmpty) {
+      return null;
+    }
+
+    final doc = snapshot.docs.first;
+    return Subscription.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+  }
+
+  // Check if a user has a valid subscription (not expired)
+  Future<bool> hasValidSubscription(String userId) async {
+    final subscription = await getActiveSubscriptionForUser(userId);
+    if (subscription == null) {
+      return false;
+    }
+
+    // Check if subscription is still valid (not expired)
+    final now = DateTime.now();
+    return subscription.endDate.isAfter(now);
+  }
+
+  // Calculate days remaining in subscription
+  Future<int> getDaysRemainingInSubscription(String userId) async {
+    final subscription = await getActiveSubscriptionForUser(userId);
+    if (subscription == null) {
+      return 0;
+    }
+
+    final now = DateTime.now();
+    if (subscription.endDate.isBefore(now)) {
+      return 0;
+    }
+
+    return subscription.endDate.difference(now).inDays;
+  }
 }
