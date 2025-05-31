@@ -13,7 +13,10 @@ class UserService {
     required String email,
     required String password,
     required String name,
-    required String role,
+    required List<Map<String, String>> roles,
+    String? surname1,
+    String? surname2,
+    String? phone,
   }) async {
     try {
       // Crear usuario en Firebase Auth
@@ -29,13 +32,11 @@ class UserService {
         id: userId,
         userId: userId,
         name: name,
-        surname1: '',
-        surname2: '',
+        surname1: surname1 ?? '',
+        surname2: surname2 ?? '',
         email: email,
-        phone: '',
-        roles: [
-          {'id': role, 'name': _getRoleName(role)},
-        ],
+        phone: phone ?? '',
+        roles: roles,
         height: 0,
         weight: 0,
         dateOfBirth: '',

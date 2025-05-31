@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../models/user.dart';
 import '../../../services/role_service.dart';
+import '../../../services/user_service.dart';
 import 'create_user_screen.dart';
 
 class UsersScreen extends StatefulWidget {
@@ -11,6 +13,7 @@ class UsersScreen extends StatefulWidget {
 
 class _UsersScreenState extends State<UsersScreen> {
   final _roleService = RoleService();
+  final _userService = UserService();
   Map<String, bool> _expandedSections = {
     'own': true,
     'coa': true,
@@ -203,50 +206,61 @@ class _UsersScreenState extends State<UsersScreen> {
                                     color: _getRoleColor(role),
                                   ),
                                   color: const Color(0xFF2A2A2A),
-                                  itemBuilder: (context) => [
-                                    PopupMenuItem(
-                                      child: ListTile(
-                                        leading: const Icon(
-                                          Icons.edit,
-                                          color: Colors.white,
-                                          size: 20,
-                                        ),
-                                        title: const Text(
-                                          'Editar',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 14,
+                                  itemBuilder:
+                                      (context) => [
+                                        PopupMenuItem(
+                                          child: ListTile(
+                                            leading: const Icon(
+                                              Icons.edit,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                            title: const Text(
+                                              'Editar',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                            contentPadding: EdgeInsets.zero,
+                                            horizontalTitleGap: 8,
+                                            onTap: () {
+                                              Navigator.pop(
+                                                context,
+                                              ); // Cerrar el menú
+                                              _showEditDialog(user['id'], role);
+                                            },
                                           ),
                                         ),
-                                        contentPadding: EdgeInsets.zero,
-                                        horizontalTitleGap: 8,
-                                        onTap: () {
-                                          // TODO: Implement edit user
-                                        },
-                                      ),
-                                    ),
-                                    PopupMenuItem(
-                                      child: ListTile(
-                                        leading: const Icon(
-                                          Icons.delete,
-                                          color: Colors.red,
-                                          size: 20,
-                                        ),
-                                        title: const Text(
-                                          'Eliminar',
-                                          style: TextStyle(
-                                            color: Colors.red,
-                                            fontSize: 14,
+                                        PopupMenuItem(
+                                          child: ListTile(
+                                            leading: const Icon(
+                                              Icons.delete,
+                                              color: Colors.red,
+                                              size: 20,
+                                            ),
+                                            title: const Text(
+                                              'Eliminar',
+                                              style: TextStyle(
+                                                color: Colors.red,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                            contentPadding: EdgeInsets.zero,
+                                            horizontalTitleGap: 8,
+                                            onTap: () {
+                                              Navigator.pop(
+                                                context,
+                                              ); // Cerrar el menú
+                                              _showDeleteConfirmation(
+                                                user['id'],
+                                                user['name'],
+                                                role,
+                                              );
+                                            },
                                           ),
                                         ),
-                                        contentPadding: EdgeInsets.zero,
-                                        horizontalTitleGap: 8,
-                                        onTap: () {
-                                          // TODO: Implement delete user
-                                        },
-                                      ),
-                                    ),
-                                  ],
+                                      ],
                                 ),
                               ),
                             ),
@@ -270,14 +284,13 @@ class _UsersScreenState extends State<UsersScreen> {
             },
           );
         },
-      ),      floatingActionButton: FloatingActionButton(
+      ),
+      floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFFFF8C42),
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const CreateUserScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const CreateUserScreen()),
           );
           if (result == true) {
             setState(() {}); // Refresh the list
@@ -285,6 +298,172 @@ class _UsersScreenState extends State<UsersScreen> {
         },
         child: const Icon(Icons.add, color: Colors.white),
       ),
+    );
+  }
+
+  void _showEditDialog(String userId, String currentRole) async {
+    final user = await _userService.getUserById(userId);
+    if (user == null || !mounted) return;
+
+    String newName = user.name;
+    String newPhone = user.phone;
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: const Color(0xFF2A2A2A),
+            title: const Text(
+              'Editar Usuario',
+              style: TextStyle(color: Colors.white),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  initialValue: user.name,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Nombre',
+                    labelStyle: TextStyle(color: Colors.grey[400]),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey[700]!),
+                    ),
+                    focusedBorder: const UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFF8C42)),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    newName = value;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  initialValue: user.phone,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Teléfono',
+                    labelStyle: TextStyle(color: Colors.grey[400]),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey[700]!),
+                    ),
+                    focusedBorder: const UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFF8C42)),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    newPhone = value;
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'Cancelar',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+              TextButton(
+                onPressed: () async {
+                  try {
+                    final updatedUser = User(
+                      id: user.id,
+                      userId: user.userId,
+                      name: newName,
+                      surname1: user.surname1,
+                      surname2: user.surname2,
+                      email: user.email,
+                      phone: newPhone,
+                      pin: user.pin,
+                      roles: user.roles,
+                      height: user.height,
+                      weight: user.weight,
+                      dateOfBirth: user.dateOfBirth,
+                      membershipId: user.membershipId,
+                      profilePictureUrl: user.profilePictureUrl,
+                    );
+                    await _userService.updateUser(updatedUser);
+                    if (!mounted) return;
+                    Navigator.pop(context);
+                    setState(() {}); // Actualizar la lista
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Usuario actualizado con éxito'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error al actualizar usuario: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+                child: const Text(
+                  'Guardar',
+                  style: TextStyle(color: Color(0xFFFF8C42)),
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _showDeleteConfirmation(String userId, String userName, String role) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: const Color(0xFF2A2A2A),
+            title: const Text(
+              'Confirmar Eliminación',
+              style: TextStyle(color: Colors.white),
+            ),
+            content: Text(
+              '¿Estás seguro que deseas eliminar a $userName?',
+              style: const TextStyle(color: Colors.white),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'Cancelar',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+              TextButton(
+                onPressed: () async {
+                  try {
+                    await _userService.deleteUser(userId);
+                    if (!mounted) return;
+                    Navigator.pop(context);
+                    setState(() {}); // Actualizar la lista
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Usuario eliminado con éxito'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error al eliminar usuario: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+                child: const Text(
+                  'Eliminar',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
     );
   }
 }

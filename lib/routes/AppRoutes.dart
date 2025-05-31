@@ -13,6 +13,8 @@ import 'package:gym_app/screens/auth/membership_screen.dart';
 import 'package:gym_app/screens/owner/plans_screen.dart' show PlansScreen;
 import 'package:gym_app/screens/owner/users_screen.dart' show UsersScreen;
 import 'package:gym_app/screens/client/qr_scanner_screen.dart';
+import 'package:gym_app/screens/coach/exercises_screen.dart'
+    show ExercisesScreen;
 
 class AppRoutes {
   static const String welcome = '/welcome';
@@ -27,6 +29,7 @@ class AppRoutes {
   static const String plans = '/plans';
   static const String users = '/users';
   static const String qrScanner = '/qr-scanner';
+  static const String exercises = '/exercises';
 
   static Map<String, WidgetBuilder> routes = {
     welcome: (_) => const WelcomeScreen(),
@@ -41,5 +44,6 @@ class AppRoutes {
     plans: (_) => const PlansScreen(),
     users: (_) => const UsersScreen(),
     qrScanner: (_) => const QRScannerScreen(),
+    exercises: (_) => const ExercisesScreen(),
   };
 }
