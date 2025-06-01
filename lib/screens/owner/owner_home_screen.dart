@@ -92,9 +92,11 @@ class OwnerHomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               _buildOptionCard(
-                'Creacion de\nRutinas',
-                'assets/memberships/basic.jpg',
-                onTap: () {},
+                'Creación de\nUsuarios',
+                'assets/memberships/medium.jpg',
+                onTap: () {
+                  Navigator.pushNamed(context, AppRoutes.users);
+                },
               ),
               const SizedBox(height: 16),
               const Text(
@@ -142,23 +144,6 @@ class OwnerHomeScreen extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Usuarios',
-                style: TextStyle(
-                  color: Colors.white54,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 16),
-              _buildOptionCard(
-                'Creación de\nUsuarios',
-                'assets/memberships/medium.jpg',
-                onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.users);
-                },
               ),
               const SizedBox(height: 16),
             ],

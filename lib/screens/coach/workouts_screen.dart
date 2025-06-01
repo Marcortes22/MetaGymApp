@@ -1,86 +1,63 @@
 import 'package:flutter/material.dart';
-import '../../../models/exercise.dart';
-import '../../../models/muscle_group.dart';
-import '../../../services/exercise_service.dart';
-import '../../../services/muscle_groups_service.dart';
-import './exercise_detail_screen.dart';
-import './create_exercise_screen.dart';
-import './edit_exercise_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../models/workout.dart';
+import '../../../services/workout_service.dart';
+import './create_workout_screen.dart';
+import './workout_detail_screen.dart';
+import './edit_workout_screen.dart';
 
-class ExercisesScreen extends StatefulWidget {
-  const ExercisesScreen({super.key});
+class WorkoutsScreen extends StatefulWidget {
+  const WorkoutsScreen({super.key});
 
   @override
-  State<ExercisesScreen> createState() => _ExercisesScreenState();
+  State<WorkoutsScreen> createState() => _WorkoutsScreenState();
 }
 
-class _ExercisesScreenState extends State<ExercisesScreen> {
-  final ExerciseService _exerciseService = ExerciseService();
-  final MuscleGroupService _muscleGroupService = MuscleGroupService();
-  Map<String, List<Exercise>> _exercisesByMuscleGroup = {};
-  List<MuscleGroup> _muscleGroups = [];
+class _WorkoutsScreenState extends State<WorkoutsScreen> {
+  final WorkoutService _workoutService = WorkoutService();
+  Map<String, List<Workout>> _workoutsByDifficulty = {};
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadExercises();
-    _setupMuscleGroupsListener();
+    _loadWorkouts();
   }
 
-  void _setupMuscleGroupsListener() {
-    _muscleGroupService.getMuscleGroups().listen((groups) {
+  Future<void> _loadWorkouts() async {
+    setState(() => _isLoading = true);
+    try {
+      final allWorkouts = await _workoutService.getAll();
+      final Map<String, List<Workout>> workoutMap = {
+        'Beginner': [],
+        'Intermediate': [],
+        'Advanced': [],
+      };
+
+      for (var workout in allWorkouts) {
+        if (workout.level != null) {
+          workoutMap[workout.level]?.add(workout);
+        }
+      }
+
       setState(() {
-        _muscleGroups = groups;
+        _workoutsByDifficulty = workoutMap;
+        _isLoading = false;
       });
-      _loadExercises();
-    });
-  }
-
-  Future<void> _loadExercises() async {
-    final exercises = await _exerciseService.getAll();
-
-    final newExercisesByMuscleGroup = <String, List<Exercise>>{};
-
-    // Inicializar las listas para cada grupo muscular
-    for (var group in _muscleGroups) {
-      newExercisesByMuscleGroup[group.id] = [];
-    }
-
-    // Distribuir los ejercicios en sus grupos musculares
-    for (var exercise in exercises) {
-      if (newExercisesByMuscleGroup.containsKey(exercise.muscleGroupId)) {
-        newExercisesByMuscleGroup[exercise.muscleGroupId]!.add(exercise);
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al cargar las rutinas'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
-
-    setState(() {
-      _exercisesByMuscleGroup = newExercisesByMuscleGroup;
-    });
   }
 
-  Future<void> _navigateToCreateExercise() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const CreateExerciseScreen()),
-    );
-    if (result == true) {
-      _loadExercises();
-    }
-  }
-
-  Future<void> _navigateToEditExercise(Exercise exercise) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditExerciseScreen(exercise: exercise),
-      ),
-    );
-    if (result == true) {
-      _loadExercises();
-    }
-  }
-
-  Future<void> _deleteExercise(Exercise exercise) async {
+  Future<void> _deleteWorkout(Workout workout) async {
     showDialog(
       context: context,
       builder:
@@ -91,7 +68,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
               style: TextStyle(color: Colors.white),
             ),
             content: Text(
-              '¿Estás seguro que deseas eliminar el ejercicio ${exercise.name}?',
+              '¿Estás seguro que deseas eliminar la rutina ${workout.title}?',
               style: const TextStyle(color: Colors.white),
             ),
             actions: [
@@ -105,13 +82,13 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
               TextButton(
                 onPressed: () async {
                   try {
-                    await _exerciseService.deleteExercise(exercise.id);
+                    await _workoutService.deleteWorkout(workout.id);
                     if (mounted) {
                       Navigator.pop(context);
-                      _loadExercises();
+                      _loadWorkouts();
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Ejercicio eliminado exitosamente'),
+                          content: Text('Rutina eliminada exitosamente'),
                           backgroundColor: Color(0xFFFF8C42),
                         ),
                       );
@@ -121,7 +98,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Error al eliminar el ejercicio'),
+                          content: Text('Error al eliminar la rutina'),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -153,6 +130,15 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF1A1A1A),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFFFF8C42)),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFF1A1A1A),
       appBar: AppBar(
@@ -163,7 +149,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Ejercicios',
+          'Rutinas',
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
@@ -173,19 +159,33 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add, color: Color(0xFFFF8C42)),
-            onPressed: _navigateToCreateExercise,
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateWorkoutScreen(),
+                ),
+              );
+              if (result == true) {
+                _loadWorkouts();
+              }
+            },
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children:
-                _muscleGroups.map((muscleGroup) {
-                  final exercises =
-                      _exercisesByMuscleGroup[muscleGroup.id] ?? [];
+      body: RefreshIndicator(
+        color: const Color(0xFFFF8C42),
+        onRefresh: _loadWorkouts,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ..._workoutsByDifficulty.entries.map((entry) {
+                  final difficulty = entry.key;
+                  final workouts = entry.value;
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,7 +193,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                       Row(
                         children: [
                           Text(
-                            muscleGroup.name,
+                            difficulty,
                             style: const TextStyle(
                               color: Colors.white54,
                               fontSize: 18,
@@ -207,13 +207,15 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFF8C42).withOpacity(0.2),
+                              color: _getDifficultyColor(
+                                difficulty,
+                              ).withOpacity(0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              '${exercises.length}',
-                              style: const TextStyle(
-                                color: Color(0xFFFF8C42),
+                              '${workouts.length}',
+                              style: TextStyle(
+                                color: _getDifficultyColor(difficulty),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -222,11 +224,11 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      if (exercises.isEmpty)
+                      if (workouts.isEmpty)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 24.0),
                           child: Text(
-                            'No hay ejercicios para ${muscleGroup.name}',
+                            'No hay rutinas de nivel $difficulty',
                             style: const TextStyle(
                               color: Colors.white38,
                               fontSize: 14,
@@ -237,9 +239,9 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                         ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: exercises.length,
+                          itemCount: workouts.length,
                           itemBuilder: (context, index) {
-                            final exercise = exercises[index];
+                            final workout = workouts[index];
                             return Card(
                               margin: const EdgeInsets.only(bottom: 16),
                               color: Colors.white.withOpacity(0.05),
@@ -250,26 +252,29 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                                 contentPadding: const EdgeInsets.all(16),
                                 leading: CircleAvatar(
                                   backgroundColor: _getDifficultyColor(
-                                    exercise.difficulty,
+                                    difficulty,
                                   ),
                                   child: const Icon(
                                     Icons.fitness_center,
                                     color: Colors.white,
                                   ),
                                 ),
-                                onTap: () {
-                                  Navigator.push(
+                                onTap: () async {
+                                  final result = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder:
-                                          (context) => ExerciseDetailScreen(
-                                            exerciseId: exercise.id,
+                                          (context) => WorkoutDetailScreen(
+                                            workoutId: workout.id,
                                           ),
                                     ),
                                   );
+                                  if (result == true) {
+                                    _loadWorkouts();
+                                  }
                                 },
                                 title: Text(
-                                  exercise.name,
+                                  workout.title,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 16,
@@ -281,14 +286,14 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                                   children: [
                                     const SizedBox(height: 8),
                                     Text(
-                                      'Dificultad: ${exercise.difficulty}',
+                                      '${workout.exercises.length} ejercicios',
                                       style: TextStyle(
                                         color: Colors.grey[400],
                                         fontSize: 14,
                                       ),
                                     ),
                                     Text(
-                                      exercise.description,
+                                      workout.description,
                                       style: TextStyle(
                                         color: Colors.grey[400],
                                         fontSize: 12,
@@ -301,9 +306,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                                 trailing: PopupMenuButton(
                                   icon: Icon(
                                     Icons.more_vert,
-                                    color: _getDifficultyColor(
-                                      exercise.difficulty,
-                                    ),
+                                    color: _getDifficultyColor(difficulty),
                                   ),
                                   color: const Color(0xFF2A2A2A),
                                   itemBuilder:
@@ -324,9 +327,23 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                                             ),
                                             contentPadding: EdgeInsets.zero,
                                             horizontalTitleGap: 8,
-                                            onTap: () {
+                                            onTap: () async {
                                               Navigator.pop(context);
-                                              _navigateToEditExercise(exercise);
+                                              final result =
+                                                  await Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder:
+                                                          (context) =>
+                                                              EditWorkoutScreen(
+                                                                workout:
+                                                                    workout,
+                                                              ),
+                                                    ),
+                                                  );
+                                              if (result == true) {
+                                                _loadWorkouts();
+                                              }
                                             },
                                           ),
                                         ),
@@ -348,7 +365,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                                             horizontalTitleGap: 8,
                                             onTap: () {
                                               Navigator.pop(context);
-                                              _deleteExercise(exercise);
+                                              _deleteWorkout(workout);
                                             },
                                           ),
                                         ),
@@ -362,6 +379,8 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                     ],
                   );
                 }).toList(),
+              ],
+            ),
           ),
         ),
       ),

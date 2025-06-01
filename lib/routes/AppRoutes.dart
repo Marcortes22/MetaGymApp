@@ -18,6 +18,9 @@ import 'package:gym_app/screens/owner/all_attendance_screen.dart';
 import 'package:gym_app/screens/auth/CheckInScreen.dart';
 import 'package:gym_app/screens/coach/exercises_screen.dart'
     show ExercisesScreen;
+import 'package:gym_app/screens/coach/workouts_screen.dart' show WorkoutsScreen;
+import 'package:gym_app/screens/coach/assign_workout_screen.dart'
+    show AssignWorkoutScreen;
 
 class AppRoutes {
   static const String welcome = '/welcome';
@@ -35,6 +38,9 @@ class AppRoutes {
   static const String userProfile = '/user-profile';
   static const String allAttendance = '/all-attendance';
   static const String checkIn = '/check-in';
+  static const String exercises = '/exercises';
+  static const String workouts = '/workouts';
+  static const String assignWorkouts = '/assign-workouts';
 
   static Map<String, WidgetBuilder> routes = {
     welcome: (_) => const WelcomeScreen(),
@@ -52,5 +58,8 @@ class AppRoutes {
     userProfile: (_) => const UserProfileScreen(),
     allAttendance: (_) => const AllAttendanceScreen(),
     checkIn: (_) => const CheckInScreen(),
+    exercises: (_) => const ExercisesScreen(),
+    workouts: (_) => const WorkoutsScreen(),
+    assignWorkouts: (_) => const AssignWorkoutScreen(),
   };
 }
