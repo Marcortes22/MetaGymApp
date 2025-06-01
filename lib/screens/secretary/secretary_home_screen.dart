@@ -1,75 +1,188 @@
 import 'package:flutter/material.dart';
-import 'package:gym_app/services/create_collections.dart';
-import 'package:gym_app/widgets/log_out_button.dart';
-import 'package:gym_app/widgets/ActivateTotenModeButton.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gym_app/screens/secretary/client_list_screen.dart';
 
 class SecretaryHomeScreen extends StatelessWidget {
-  const SecretaryHomeScreen({super.key});
+  const SecretaryHomeScreen({Key? key}) : super(key: key);
+
+  Future<String> _getUserName() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+      if (userDoc.exists) {
+        return "Hola, ${userDoc.data()?['name'] ?? 'Secretaria'}";
+      }
+    }
+    return "Hola, Secretaria";
+  }
+
+  Future<void> _handleLogout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushReplacementNamed(context, '/login');
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF1A1A1A),
       appBar: AppBar(
-        // leading: Builder(
-        //   builder: (context) {
-        //     return IconButton(
-        //       icon: const Icon(Icons.fitness_center),
-        //       onPressed: () {
-        //         Scaffold.of(context).openDrawer();
-        //       },
-        //     );
-        //   },
-        // ),
-        title: const Text('Gym App'),
-        actions: const [ActivateTotenModeButton(), LogoutButton()],
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: FutureBuilder<String>(
+          future: _getUserName(),
+          builder: (context, snapshot) {
+            return Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Color(0xFFFF8C42)),
+                  onPressed: () => _handleLogout(context),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  snapshot.data ?? 'Cargando...',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none, color: Color(0xFFFF8C42)),
+            onPressed: () {
+              // TODO: acción para notificaciones globales
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.person_outline, color: Color(0xFFFF8C42)),
+            onPressed: () {
+              // TODO: perfil de secretaria
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
-      drawer: Drawer(
-        // Add a ListView to the drawer. This ensures the user can scroll
-        // through the options in the drawer if there isn't enough vertical
-        // space to fit everything.
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 32.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue),
-              child: Text('Drawer Header'),
+            // ======== Sección "Creación de clientes" ========
+            const Text(
+              'Creación de clientes',
+              style: TextStyle(
+                color: Colors.white54,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            ListTile(
-              title: const Text('Item 1'),
+            const SizedBox(height: 16),
+            _buildOptionCard(
+              'Crear Cliente',
+              'assets/memberships/basic.jpg',
               onTap: () {
-                // Update the state of the app.
-                // ...
-
-                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ClientListScreen(),
+                  ),
+                );
               },
+              height: 200,
             ),
-            ListTile(
-              title: const Text('Item 2'),
+            const SizedBox(height: 16),
+            // ======== Sección "Renovación de suscripción" ========
+            const Text(
+              'Renovación de suscripción',
+              style: TextStyle(
+                color: Colors.white54,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildOptionCard(
+              'Renovar Suscripción',
+              'assets/memberships/premium.jpg',
               onTap: () {
-                // Update the state of the app.
-                // ...
-
-                Navigator.pop(context);
+                // TODO: Navegar a pantalla de renovación de suscripción
               },
+              height: 200,
+            ),
+            const SizedBox(height: 16),
+            // ======== Sección "Historial de asistencia" ========
+            const Text(
+              'Historial de asistencia',
+              style: TextStyle(
+                color: Colors.white54,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildOptionCard(
+              'Ver Historial',
+              'assets/workouts/cardio.jpg',
+              onTap: () {
+                // TODO: Navegar a pantalla de historial de asistencias
+              },
+              height: 200,
             ),
           ],
         ),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Secretaria', style: TextStyle(fontSize: 20)),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                await createFakeGymData();
-              },
-              child: const Text('Crear Datos Fake'),
+    );
+  }
+
+  Widget _buildOptionCard(
+    String title,
+    String imageUrl, {
+    required VoidCallback onTap,
+    double height = 200,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          image: DecorationImage(
+            image: AssetImage(imageUrl),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.4),
+              BlendMode.darken,
             ),
-            const SizedBox(height: 20),
-          ],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Center(
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                shadows: [
+                  Shadow(
+                    offset: Offset(0, 1),
+                    blurRadius: 4,
+                    color: Colors.black45,
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

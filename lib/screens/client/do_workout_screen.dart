@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../../models/workout.dart';
 import '../../models/exercise.dart';
 
@@ -19,6 +20,41 @@ class DoWorkoutScreen extends StatefulWidget {
 class _DoWorkoutScreenState extends State<DoWorkoutScreen> {
   int _currentIndex = 0;
   bool _finished = false;
+  YoutubePlayerController? _youtubeController;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeYoutubeController(widget.exercises[_currentIndex].videoUrl);
+  }
+
+  @override
+  void dispose() {
+    _youtubeController?.dispose();
+    super.dispose();
+  }
+
+  String? _getYoutubeId(String url) {
+    return YoutubePlayer.convertUrlToId(url);
+  }
+
+  void _initializeYoutubeController(String videoUrl) {
+    _youtubeController?.dispose();
+    final videoId = _getYoutubeId(videoUrl);
+    if (videoId != null) {
+      _youtubeController = YoutubePlayerController(
+        initialVideoId: videoId,
+        flags: const YoutubePlayerFlags(
+          autoPlay: false,
+          mute: false,
+          controlsVisibleAtStart: true,
+        ),
+      );
+      setState(() {}); // Trigger rebuild to show video player
+    } else {
+      _youtubeController = null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,20 +117,16 @@ class _DoWorkoutScreenState extends State<DoWorkoutScreen> {
           children: [
             AspectRatio(
               aspectRatio: 16 / 9,
-              child: exercise.videoUrl.isNotEmpty
+              child: exercise.videoUrl.isNotEmpty && _youtubeController != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      child: Image.network(
-                        exercise.videoUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[800],
-                            child: const Center(
-                              child: Icon(Icons.fitness_center, color: Colors.white, size: 48),
-                            ),
-                          );
-                        },
+                      child: YoutubePlayer(
+                        controller: _youtubeController!,
+                        showVideoProgressIndicator: true,
+                        progressColors: const ProgressBarColors(
+                          playedColor: Color(0xFFFF8C42),
+                          handleColor: Color(0xFFFF8C42),
+                        ),
                       ),
                     )
                   : Container(
@@ -130,57 +162,109 @@ class _DoWorkoutScreenState extends State<DoWorkoutScreen> {
                 _buildInfoChip(Icons.speed, exercise.difficulty),
               ],
             ),
-            const Spacer(),
-            Row(
+            const Spacer(),            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 if (_currentIndex > 0)
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _currentIndex--;
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[800],
-                      minimumSize: const Size(120, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _currentIndex--;
+                          _initializeYoutubeController(widget.exercises[_currentIndex].videoUrl);
+                        });
+                      },
+                      icon: const Icon(Icons.arrow_back_rounded, size: 24),
+                      label: const Text('Anterior'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[850],
+                        foregroundColor: const Color(0xFFFF8C42),
+                        minimumSize: const Size(140, 56),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                     ),
-                    child: const Text('Anterior', style: TextStyle(fontSize: 16)),
                   ),
                 if (_currentIndex < widget.exercises.length - 1)
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _currentIndex++;
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF8C42),
-                      minimumSize: const Size(120, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFF8C42).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _currentIndex++;
+                          _initializeYoutubeController(widget.exercises[_currentIndex].videoUrl);
+                        });
+                      },
+                      label: const Text('Siguiente'),
+                      icon: const Icon(Icons.arrow_forward_rounded, size: 24),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF8C42),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(140, 56),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                     ),
-                    child: const Text('Siguiente', style: TextStyle(fontSize: 16)),
                   ),
                 if (_currentIndex == widget.exercises.length - 1)
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _finished = true;
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF8C42),
-                      minimumSize: const Size(120, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFF8C42).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _finished = true;
+                        });
+                      },
+                      icon: const Icon(Icons.check_circle_outline_rounded, size: 24),
+                      label: const Text('Finalizar'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF8C42),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(140, 56),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                     ),
-                    child: const Text('Finalizar', style: TextStyle(fontSize: 16)),
                   ),
               ],
             ),
@@ -192,17 +276,33 @@ class _DoWorkoutScreenState extends State<DoWorkoutScreen> {
 
   Widget _buildInfoChip(IconData icon, String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      width: 100,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.grey[800],
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.grey[850],
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: const Color(0xFFFF8C42), size: 16),
-          const SizedBox(width: 4),
-          Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
+          Icon(icon, color: const Color(0xFFFF8C42), size: 32),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );

@@ -168,36 +168,77 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: ElevatedButton(
-              onPressed: _exercises.length == widget.workout.exercises.length
-                  ? () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DoWorkoutScreen(
-                            workout: widget.workout,
-                            exercises: widget.workout.exercises
-                                .map((e) => _exercises[e.exerciseId]!)
-                                .toList(),
-                          ),
-                        ),
-                      );
-                    }
-                  : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF8C42),
-                minimumSize: const Size.fromHeight(50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.3),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFF8C42).withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, -4),
                 ),
+              ],
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Container(
+              width: double.infinity,
+              height: 55,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF8C42), Color(0xFFFF6B42)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF8C42).withOpacity(0.5),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: const Text(
-                'Comenzar Rutina',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              child: ElevatedButton(
+                onPressed: _exercises.length == widget.workout.exercises.length
+                    ? () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DoWorkoutScreen(
+                              workout: widget.workout,
+                              exercises: widget.workout.exercises
+                                  .map((e) => _exercises[e.exerciseId]!)
+                                  .toList(),
+                            ),
+                          ),
+                        );
+                      }
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.fitness_center,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Comenzar Rutina',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
