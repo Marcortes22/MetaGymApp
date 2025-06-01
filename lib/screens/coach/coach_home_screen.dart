@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gym_app/routes/AppRoutes.dart';
+import 'package:gym_app/screens/coach/assign_workout_screen.dart';
 
 class CoachHomeScreen extends StatelessWidget {
   const CoachHomeScreen({super.key});
@@ -129,7 +131,7 @@ class CoachHomeScreen extends StatelessWidget {
                 'Crear\nEjercicios',
                 'assets/memberships/basic.jpg',
                 onTap: () {
-                  Navigator.pushNamed(context, '/exercises');
+                  Navigator.pushNamed(context, AppRoutes.exercises);
                 },
               ),
               const SizedBox(height: 16),
@@ -146,7 +148,7 @@ class CoachHomeScreen extends StatelessWidget {
                 'Crear\nRutinas',
                 'assets/memberships/medium.jpg',
                 onTap: () {
-                  // TODO: Implementar navegación a crear rutinas
+                  Navigator.pushNamed(context, AppRoutes.workouts);
                 },
               ),
               const SizedBox(height: 16),
@@ -163,7 +165,7 @@ class CoachHomeScreen extends StatelessWidget {
                 'Asignar\nRutinas',
                 'assets/memberships/premium.jpg',
                 onTap: () {
-                  // TODO: Implementar navegación a asignar rutinas
+                  Navigator.pushNamed(context, AppRoutes.assignWorkouts);
                 },
               ),
             ],

@@ -8,6 +8,7 @@ import 'package:gym_app/screens/coach/coach_home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gym_app/screens/auth/no_role_screen.dart';
 import 'package:gym_app/screens/owner/owner_home_screen.dart';
+import 'package:gym_app/screens/secretary/secretary_home_screen.dart';
 import 'package:gym_app/screens/auth/role_selection_screen.dart';
 import 'package:gym_app/screens/secretary/secretary_home_screen.dart';
 import 'package:gym_app/screens/auth/welcome_screen.dart';

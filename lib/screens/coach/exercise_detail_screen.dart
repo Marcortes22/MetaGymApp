@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../../../models/exercise.dart';
 import '../../../services/exercise_service.dart';
 import '../../../services/muscle_groups_service.dart';
@@ -16,6 +16,7 @@ class ExerciseDetailScreen extends StatefulWidget {
 class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   final ExerciseService _exerciseService = ExerciseService();
   final MuscleGroupService _muscleGroupsService = MuscleGroupService();
+  YoutubePlayerController? _youtubeController;
 
   Exercise? _exercise;
   String _muscleName = '';
@@ -26,33 +27,94 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     _loadExercise();
   }
 
+  @override
+  void dispose() {
+    _youtubeController?.dispose();
+    super.dispose();
+  }
+
+  String? _getYoutubeId(String url) {
+    return YoutubePlayer.convertUrlToId(url);
+  }
+
+  void _initializeYoutubeController(String videoUrl) {
+    final videoId = _getYoutubeId(videoUrl);
+    if (videoId != null) {
+      _youtubeController = YoutubePlayerController(
+        initialVideoId: videoId,
+        flags: const YoutubePlayerFlags(
+          autoPlay: false,
+          mute: false,
+          controlsVisibleAtStart: true,
+        ),
+      );
+      setState(() {}); // Trigger rebuild to show video player
+    }
+  }
+
   Future<void> _loadExercise() async {
     final exercise = await _exerciseService.getById(widget.exerciseId);
     if (exercise != null) {
-      final muscleGroup =
-          await _muscleGroupsService.getMuscleGroup(exercise.muscleGroupId);
+      final muscleGroup = await _muscleGroupsService.getMuscleGroup(
+        exercise.muscleGroupId,
+      );
       setState(() {
         _exercise = exercise;
         _muscleName = muscleGroup?.name ?? 'No especificado';
       });
+      if (exercise.videoUrl.isNotEmpty) {
+        _initializeYoutubeController(exercise.videoUrl);
+      }
     }
   }
 
-  /// Este método abre la URL del video usando url_launcher.
-  Future<void> _launchVideo() async {
-    if (_exercise == null || _exercise!.videoUrl.isEmpty) return;
+  Widget _buildVideoSection() {
+    if (_exercise == null || _exercise!.videoUrl.isEmpty)
+      return const SizedBox();
 
-    final Uri videoUri = Uri.parse(_exercise!.videoUrl.trim());
-    if (await canLaunchUrl(videoUri)) {
-      await launchUrl(videoUri, mode: LaunchMode.externalApplication);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo abrir el video.'),
-          backgroundColor: Colors.redAccent,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        const Text(
+          'Video Tutorial',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-      );
-    }
+        const SizedBox(height: 16),
+        if (_youtubeController != null)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(15),
+            child: YoutubePlayer(
+              controller: _youtubeController!,
+              showVideoProgressIndicator: true,
+              progressColors: const ProgressBarColors(
+                playedColor: Color(0xFFFF8C42),
+                handleColor: Color(0xFFFF8C42),
+              ),
+              onReady: () {
+                print('Player is ready.');
+              },
+            ),
+          )
+        else
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: const Text(
+              'No se pudo cargar el video',
+              style: TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+          ),
+      ],
+    );
   }
 
   Color _getDifficultyColor(String difficulty) {
@@ -153,7 +215,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
               const SizedBox(height: 24),
 
-              // Título “Descripción”
+              // Título "Descripción"
               const Text(
                 'Descripción',
                 style: TextStyle(
@@ -182,53 +244,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 ),
               ),
 
-              // Si existe URL de video, mostrar sección "Video Tutorial"
-              if (_exercise!.videoUrl.isNotEmpty) ...[
-                const SizedBox(height: 24),
-                const Text(
-                  'Video Tutorial',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                // Hacemos el contenedor “clicable” con InkWell
-                InkWell(
-                  onTap: _launchVideo,
-                  borderRadius: BorderRadius.circular(15),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.play_circle_outline,
-                          color: Color(0xFFFF8C42),
-                          size: 24,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Ver video tutorial',
-                            style: TextStyle(
-                              color: Theme.of(context).primaryColor,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+              // Sección del video tutorial
+              _buildVideoSection(),
             ],
           ),
         ),
