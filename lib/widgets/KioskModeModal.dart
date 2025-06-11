@@ -81,12 +81,12 @@ class KioskModeModal extends StatelessWidget {
               text: 'Mostrará el código QR y teclado numérico',
             ),
             _FeatureItem(
-              icon: Icons.refresh,
-              text: 'Se necesitará reiniciar la app para aplicar los cambios',
+              icon: Icons.touch_app,
+              text: 'Se activará inmediatamente sin necesidad de reiniciar',
             ),
             const SizedBox(height: 16),
             const Text(
-              'Para desactivar este modo, usa el botón de desactivación en la pantalla de check-in.',
+              'Para desactivar este modo, mantén presionado el icono de configuración (⚙️) en la esquina de la pantalla de check-in durante unos segundos.',
               style: TextStyle(
                 fontStyle: FontStyle.italic,
                 color: Colors.grey,

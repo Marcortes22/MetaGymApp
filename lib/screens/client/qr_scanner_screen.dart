@@ -16,6 +16,28 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   final UserService _userService = UserService();
   bool _hasScanned = false;
   bool _processing = false;
+  bool _isCheckOut = false; // Track if we're checking out
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUserStatus();
+  }
+
+  // Check if user already has ongoing session (to determine check-in vs check-out)
+  Future<void> _checkUserStatus() async {
+    final currentUserId = _userService.getCurrentUserId();
+    if (currentUserId != null) {
+      final sessionStatus = await _attendanceService.hasOngoingSession(
+        currentUserId,
+      );
+      if (mounted) {
+        setState(() {
+          _isCheckOut = sessionStatus['hasOngoing'] == true;
+        });
+      }
+    }
+  }
 
   void _showMessage(String msg, {bool isError = false}) {
     if (!mounted) return;
@@ -52,10 +74,27 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     setState(() {
       _processing = true;
     });
-
     try {
-      // First, try to check-in with the QR code
-      final response = await _attendanceService.checkInWithQR(data);
+      // Check if the user has an ongoing session
+      final currentUserId = _userService.getCurrentUserId();
+      if (currentUserId == null) {
+        _showMessage('Error: No hay usuario autenticado', isError: true);
+        setState(() {
+          _processing = false;
+        });
+        return;
+      }
+
+      final ongoingSession = await _attendanceService.hasOngoingSession(
+        currentUserId,
+      );
+      final bool isCheckOut = ongoingSession['hasOngoing'] == true;
+
+      // Process check-in or check-out based on session status
+      final response =
+          isCheckOut
+              ? await _attendanceService.checkOutWithQR(data)
+              : await _attendanceService.checkInWithQR(data);
 
       if (response['success']) {
         // Then fetch the user's name
@@ -63,13 +102,22 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         final userName = await _userService.getUserName(userId);
         final displayName = userName ?? 'Usuario';
 
-        // Check if there's a subscription warning
-        String message = '¡Bienvenido/a, $displayName!';
+        String message;
         bool hasWarning = false;
 
-        if (response.containsKey('warning')) {
-          message += '\n${response['warning']}';
-          hasWarning = true;
+        if (isCheckOut) {
+          // Check-out success message with duration if available
+          message = '¡Hasta pronto, $displayName!';
+          if (response.containsKey('duration')) {
+            message += '\nTiempo en el gimnasio: ${response['duration']}';
+          }
+        } else {
+          // Check-in success message
+          message = '¡Bienvenido/a, $displayName!';
+          if (response.containsKey('warning')) {
+            message += '\n${response['warning']}';
+            hasWarning = true;
+          }
         }
 
         _showMessage(message, isError: hasWarning);
@@ -110,14 +158,16 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        // title: const Text(
-        //   'Escanear QR para Check-In',
-        //   style: TextStyle(
-        //     color: Colors.white,
-        //     fontSize: 20,
-        //     fontWeight: FontWeight.w500,
-        //   ),
-        // ),
+        title: Text(
+          _isCheckOut
+              ? 'Escanear QR para Check-Out'
+              : 'Escanear QR para Check-In',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFFFF8C42)),
           onPressed: () => Navigator.of(context).pop(),
@@ -171,15 +221,19 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                                   color: Color(0xFFFF8C42),
                                 ),
                               if (_hasScanned)
-                                const Icon(
-                                  Icons.check_circle,
+                                Icon(
+                                  _isCheckOut
+                                      ? Icons.exit_to_app
+                                      : Icons.check_circle,
                                   color: Color(0xFFFF8C42),
                                   size: 80,
                                 ),
                               const SizedBox(height: 24),
                               Text(
                                 _hasScanned
-                                    ? '¡Check-in exitoso!'
+                                    ? _isCheckOut
+                                        ? '¡Check-out exitoso!'
+                                        : '¡Check-in exitoso!'
                                     : 'Procesando...',
                                 style: const TextStyle(
                                   color: Colors.white,

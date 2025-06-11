@@ -69,7 +69,9 @@ class OwnerHomeScreen extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.person_outline, color: Color(0xFFFF8C42)),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pushNamed(context, '/user-profile');
+            },
           ),
           const SizedBox(width: 8),
         ],
@@ -90,9 +92,11 @@ class OwnerHomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               _buildOptionCard(
-                'Creacion de\nRutinas',
-                'assets/memberships/basic.jpg',
-                onTap: () {},
+                'Creación de\nUsuarios',
+                'assets/memberships/medium.jpg',
+                onTap: () {
+                  Navigator.pushNamed(context, AppRoutes.users);
+                },
               ),
               const SizedBox(height: 16),
               const Text(
@@ -125,7 +129,8 @@ class OwnerHomeScreen extends StatelessWidget {
                     child: _buildOptionCard(
                       'Asistencias',
                       'assets/memberships/basic.jpg',
-                      onTap: () {},
+                      onTap:
+                          () => Navigator.pushNamed(context, '/all-attendance'),
                       height: 160,
                     ),
                   ),
@@ -139,23 +144,6 @@ class OwnerHomeScreen extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Usuarios',
-                style: TextStyle(
-                  color: Colors.white54,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 16),
-              _buildOptionCard(
-                'Creación de\nUsuarios',
-                'assets/memberships/medium.jpg',
-                onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.users);
-                },
               ),
               const SizedBox(height: 16),
             ],

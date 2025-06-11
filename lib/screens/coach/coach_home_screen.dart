@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Importa la nueva pantalla:
 import 'package:gym_app/screens/coach/assign_routine_screen.dart';
+import 'package:gym_app/routes/AppRoutes.dart';
+import 'package:gym_app/screens/coach/assign_workout_screen.dart';
 
 class CoachHomeScreen extends StatelessWidget {
   const CoachHomeScreen({Key? key}) : super(key: key);
@@ -84,7 +86,23 @@ class CoachHomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ======== Sección “Rutinas” ========
+              const Text(
+                'Ejercicios',
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildOptionCard(
+                'Crear\nEjercicios',
+                'assets/memberships/basic.jpg',
+                onTap: () {
+                  Navigator.pushNamed(context, AppRoutes.exercises);
+                },
+              ),
+              const SizedBox(height: 16),
               const Text(
                 'Rutinas',
                 style: TextStyle(
@@ -100,19 +118,10 @@ class CoachHomeScreen extends StatelessWidget {
                 'Asignar Rutina',
                 'assets/assign_routine.png',
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AssignRoutineScreen(),
-                    ),
-                  );
+                  Navigator.pushNamed(context, AppRoutes.workouts);
                 },
-                height: 240,
               ),
-
-              const SizedBox(height: 50),
-
-              // ======== Sección “Progreso” ========
+              const SizedBox(height: 16),
               const Text(
                 'Progreso',
                 style: TextStyle(
@@ -126,8 +135,7 @@ class CoachHomeScreen extends StatelessWidget {
                 'Ver Progreso',
                 'assets/progress.jpg',
                 onTap: () {
-                  // TODO: Navegar a la pantalla de “Ver Progreso”
-                  // Navigator.pushNamed(context, AppRoutes.coachProgress);
+                  Navigator.pushNamed(context, AppRoutes.assignWorkouts);
                 },
                 height: 240,
               ),

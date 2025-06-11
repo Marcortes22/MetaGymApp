@@ -1,10 +1,7 @@
-// lib/screens/secretary/secretary_home_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-// Importa la pantalla de creación de cliente
-import 'package:gym_app/screens/secretary/create_client_screen.dart';
+import 'package:gym_app/screens/secretary/client_list_screen.dart';
 
 class SecretaryHomeScreen extends StatelessWidget {
   const SecretaryHomeScreen({Key? key}) : super(key: key);
@@ -74,12 +71,11 @@ class SecretaryHomeScreen extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        // Padding con bottom grande para no pegar elementos al borde inferior
-        padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 80.0),
+        padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 32.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ======== Sección “Creación de clientes” ========
+            // ======== Sección "Creación de clientes" ========
             const Text(
               'Creación de clientes',
               style: TextStyle(
@@ -88,25 +84,22 @@ class SecretaryHomeScreen extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             _buildOptionCard(
               'Crear Cliente',
-              'assets/assign_routine.png',
+              'assets/memberships/basic.jpg',
               onTap: () {
-                // Navega a CreateClientScreen
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const CreateClientScreen(),
+                    builder: (context) => const ClientListScreen(),
                   ),
                 );
               },
-              height: 240,
+              height: 200,
             ),
-
-            const SizedBox(height: 40),
-
-            // ======== Sección “Renovación de suscripción” ========
+            const SizedBox(height: 16),
+            // ======== Sección "Renovación de suscripción" ========
             const Text(
               'Renovación de suscripción',
               style: TextStyle(
@@ -115,19 +108,17 @@ class SecretaryHomeScreen extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             _buildOptionCard(
               'Renovar Suscripción',
-              'assets/progress.jpg',
+              'assets/memberships/premium.jpg',
               onTap: () {
                 // TODO: Navegar a pantalla de renovación de suscripción
               },
-              height: 240,
+              height: 200,
             ),
-
-            const SizedBox(height: 40),
-
-            // ======== Sección “Historial de asistencia” ========
+            const SizedBox(height: 16),
+            // ======== Sección "Historial de asistencia" ========
             const Text(
               'Historial de asistencia',
               style: TextStyle(
@@ -136,14 +127,14 @@ class SecretaryHomeScreen extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             _buildOptionCard(
               'Ver Historial',
-              'assets/assign_routine.png',
+              'assets/workouts/cardio.jpg',
               onTap: () {
                 // TODO: Navegar a pantalla de historial de asistencias
               },
-              height: 240,
+              height: 200,
             ),
           ],
         ),
@@ -155,7 +146,7 @@ class SecretaryHomeScreen extends StatelessWidget {
     String title,
     String imageUrl, {
     required VoidCallback onTap,
-    double height = 180,
+    double height = 200,
   }) {
     return GestureDetector(
       onTap: onTap,

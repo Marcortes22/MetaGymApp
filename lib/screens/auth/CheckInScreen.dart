@@ -21,6 +21,8 @@ class _CheckInScreenState extends State<CheckInScreen>
   String _pin = '';
   List<String> _displayPin = [];
   String? userId;
+  // Mode variables for check-in/check-out toggle
+  bool _isCheckOutMode = false;
 
   // Animation controller for pressed button effect
   late AnimationController _animationController;
@@ -88,8 +90,11 @@ class _CheckInScreenState extends State<CheckInScreen>
       return;
     }
     try {
-      // Check in with PIN and get response
-      final response = await _attendanceService.checkInWithPin(_pin);
+      // Check in or out based on the current mode
+      final response =
+          _isCheckOutMode
+              ? await _attendanceService.checkOutWithPin(_pin)
+              : await _attendanceService.checkInWithPin(_pin);
 
       if (!response['success']) {
         _showMessage(response['message']);
@@ -98,27 +103,42 @@ class _CheckInScreenState extends State<CheckInScreen>
       }
 
       // Get the userId from the response
-      final userId = response['userId'];
-
-      // Then fetch the user's name
+      final userId = response['userId']; // Then fetch the user's name
       final userName = await _userService.getUserName(userId);
       final displayName =
           userName ?? 'Usuario'; // Show success animation with user's name
-      // Check if there's a subscription warning
-      String welcomeMessage = "¡Bienvenido/a, $displayName!";
-      if (response.containsKey('warning')) {
-        welcomeMessage += "\n${response['warning']}";
+
+      // Different messages for check-in vs check-out
+      String messageText;
+      Color backgroundColor = Colors.green;
+      IconData icon = Icons.check_circle;
+
+      if (_isCheckOutMode) {
+        // Check-out success message with duration if available
+        messageText = "¡Hasta pronto, $displayName!";
+        if (response.containsKey('duration')) {
+          messageText += "\nTiempo en el gimnasio: ${response['duration']}";
+        }
+        icon = Icons.exit_to_app;
+      } else {
+        // Check-in success message with warning if available
+        messageText = "¡Bienvenido/a, $displayName!";
+        if (response.containsKey('warning')) {
+          messageText += "\n${response['warning']}";
+          backgroundColor = Colors.orange;
+        }
+        icon = Icons.login;
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle, color: Colors.white),
+              Icon(icon, color: Colors.white),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  welcomeMessage,
+                  messageText,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 16,
@@ -128,8 +148,7 @@ class _CheckInScreenState extends State<CheckInScreen>
               ),
             ],
           ),
-          backgroundColor:
-              response.containsKey('warning') ? Colors.orange : Colors.green,
+          backgroundColor: backgroundColor,
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -288,283 +307,417 @@ class _CheckInScreenState extends State<CheckInScreen>
     );
   }
 
-  // No QR code scanning functionality
-  @override
+  // No QR code scanning functionality  @override
   Widget build(BuildContext context) {
-    // Calculate responsive dimensions for 2560x1600 resolution
+    // Calculate responsive dimensions
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    // Calculate responsive button sizes - making them fit without scrolling
+    final isLandscape = mediaQuery.orientation == Orientation.landscape;
+    final isSmallScreen = isLandscape ? screenHeight < 400 : screenWidth < 400;
+    final isMediumScreen =
+        isLandscape
+            ? screenHeight >= 400 && screenHeight < 600
+            : screenWidth >= 400 && screenWidth < 600;
+
+    // Responsive sizing - use smaller dimension for consistent sizing
+    final buttonSizeBase = isLandscape ? screenHeight : screenWidth;
     final buttonSize =
-        (screenWidth * 0.24) / 3; // Smaller size to ensure no scrolling
+        isSmallScreen
+            ? buttonSizeBase * (isLandscape ? 0.12 : 0.15)
+            : isMediumScreen
+            ? buttonSizeBase * (isLandscape ? 0.10 : 0.12)
+            : buttonSizeBase * (isLandscape ? 0.07 : 0.08);
+
     final pinBoxSize =
-        screenWidth * 0.05; // Slightly smaller PIN boxes to fit everything
+        isSmallScreen
+            ? buttonSizeBase * (isLandscape ? 0.07 : 0.08)
+            : isMediumScreen
+            ? buttonSizeBase * (isLandscape ? 0.05 : 0.06)
+            : buttonSizeBase * (isLandscape ? 0.04 : 0.05);
+
+    final titleFontSize =
+        isSmallScreen
+            ? 32.0
+            : isMediumScreen
+            ? 42.0
+            : 60.0;
+    final subtitleFontSize =
+        isSmallScreen
+            ? 14.0
+            : isMediumScreen
+            ? 18.0
+            : 24.0;
+
+    final buttonSpacing =
+        isSmallScreen
+            ? 10.0
+            : isMediumScreen
+            ? 15.0
+            : 25.0;
+    final rowSpacing =
+        isSmallScreen
+            ? 8.0
+            : isMediumScreen
+            ? 10.0
+            : 15.0;
+    final pinBoxMargin =
+        isSmallScreen
+            ? 8.0
+            : isMediumScreen
+            ? 12.0
+            : 20.0;
+
+    // QR code container sizing - use the smaller screen dimension for better layout
+    final qrMarginH =
+        isSmallScreen
+            ? (isLandscape ? screenHeight : screenWidth) * 0.05
+            : isMediumScreen
+            ? (isLandscape ? screenHeight : screenWidth) * 0.08
+            : (isLandscape ? screenHeight : screenWidth) * 0.12;
+
+    final qrHeight =
+        isLandscape
+            ? screenHeight *
+                0.4 // Taller in landscape to maintain proportions
+            : (isSmallScreen
+                ? screenHeight * 0.20
+                : isMediumScreen
+                ? screenHeight * 0.22
+                : screenHeight * 0.25);
+
+    final qrImageSize =
+        isLandscape
+            ? screenHeight *
+                0.35 // Slightly smaller than container in landscape
+            : (isSmallScreen
+                ? screenHeight * 0.15
+                : isMediumScreen
+                ? screenHeight * 0.17
+                : screenHeight * 0.20);
 
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
-        backgroundColor: const Color(0xFF1A1A1A), // Dark background
-        body: Stack(
-          children: [
-            // Background overlay with subtle gradient
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Colors.black, const Color(0xFF212121)],
+        backgroundColor: const Color(0xFF1A1A1A),
+        body: SafeArea(
+          child: Stack(
+            children: [
+              // Background
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Colors.black, const Color(0xFF212121)],
+                  ),
+                ),
+              ),
+
+              // Main content in a scrollable container for small screens
+              isSmallScreen
+                  ? SingleChildScrollView(
+                    child: _buildMainContent(
+                      screenWidth,
+                      screenHeight,
+                      isSmallScreen,
+                      titleFontSize,
+                      subtitleFontSize,
+                      qrMarginH,
+                      qrHeight,
+                      qrImageSize,
+                      buttonSize,
+                      pinBoxSize,
+                      pinBoxMargin,
+                      buttonSpacing,
+                      rowSpacing,
+                    ),
+                  )
+                  : _buildMainContent(
+                    screenWidth,
+                    screenHeight,
+                    isSmallScreen,
+                    titleFontSize,
+                    subtitleFontSize,
+                    qrMarginH,
+                    qrHeight,
+                    qrImageSize,
+                    buttonSize,
+                    pinBoxSize,
+                    pinBoxMargin,
+                    buttonSpacing,
+                    rowSpacing,
+                  ),
+
+              // Botón para salir del modo toten
+              Positioned(
+                top: 16,
+                right: 16,
+                child: DesactivateTotenModeButton(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainContent(
+    double screenWidth,
+    double screenHeight,
+    bool isSmallScreen,
+    double titleFontSize,
+    double subtitleFontSize,
+    double qrMarginH,
+    double qrHeight,
+    double qrImageSize,
+    double buttonSize,
+    double pinBoxSize,
+    double pinBoxMargin,
+    double buttonSpacing,
+    double rowSpacing,
+  ) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.05,
+        vertical: screenHeight * 0.02,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // App Logo and Header area
+          SizedBox(height: screenHeight * 0.01),
+          Image.asset('assets/gym_logo.png', height: screenHeight * 0.06),
+          const SizedBox(height: 8),
+
+          // Title
+          Text(
+            _isCheckOutMode ? 'CHECK-OUT' : 'CHECK-IN',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: titleFontSize,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2.0,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+
+          // Subtitle
+          Text(
+            _isCheckOutMode
+                ? 'Ingrese su PIN o escanee el código QR para salir'
+                : 'Ingrese su PIN o escanee el código QR desde el App',
+            style: TextStyle(color: Colors.white70, fontSize: subtitleFontSize),
+            textAlign: TextAlign.center,
+          ),
+
+          // Toggle button
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _isCheckOutMode = !_isCheckOutMode;
+                  _clearPin();
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    _isCheckOutMode
+                        ? Colors.redAccent
+                        : const Color(0xFFFF8C42),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 12 : 20,
+                  vertical: isSmallScreen ? 8 : 10,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              icon: Icon(
+                _isCheckOutMode ? Icons.logout : Icons.login,
+                color: Colors.white,
+                size: isSmallScreen ? 16 : 20,
+              ),
+              label: Text(
+                _isCheckOutMode ? "Cambiar a Entrada" : "Cambiar a Salida",
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 14 : 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
             ),
-            // Using a non-scrollable container to fit everything on screen
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: screenHeight * 0.02,
-              ),
-              child: Column(
-                children: [
-                  // App Logo and Header area
-                  SizedBox(height: screenHeight * 0.03),
-                  Image.asset(
-                    'assets/gym_logo.png',
-                    height: screenHeight * 0.08,
-                  ),
-                  const SizedBox(height: 10),
+          ),
 
-                  // Simplified large title "CHECK-IN"
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'CHECK-IN',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 60, // Much larger text
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2.0,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Ingrese su PIN o escanee el código QR desde el App',
-                    style: TextStyle(color: Colors.white70, fontSize: 24),
-                  ), // Dedicated QR Code Area - Always showing QR for clients to scan
-                  Container(
-                    margin: EdgeInsets.symmetric(
-                      vertical: screenHeight * 0.02,
-                      horizontal: screenWidth * 0.25,
+          // QR Code Area
+          Container(
+            margin: EdgeInsets.symmetric(
+              vertical: screenHeight * 0.015,
+              horizontal: qrMarginH,
+            ),
+            height: qrHeight,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: const Color(0xFFFF8C42), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFF8C42).withOpacity(0.2),
+                  spreadRadius: 2,
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Container(
+                width: qrImageSize,
+                height: qrImageSize,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      spreadRadius: 1,
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
                     ),
-                    padding: EdgeInsets.all(15),
-                    height:
-                        screenHeight *
-                        0.25, // Slightly smaller height to avoid scrolling
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(
-                        color: const Color(0xFFFF8C42),
-                        width: 3,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFFF8C42).withOpacity(0.2),
-                          spreadRadius: 3,
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 15),
-                          Container(
-                            width: screenHeight * 0.20,
-                            height: screenHeight * 0.20,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
-                                  spreadRadius: 1,
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            padding: EdgeInsets.all(8),
-                            child: QrImageView(
-                              data: userId ?? 'Usuario no identificado',
-                              version: QrVersions.auto,
-                              backgroundColor: Colors.white,
-                              eyeStyle: const QrEyeStyle(
-                                eyeShape: QrEyeShape.square,
-                                color: Color(0xFFFF8C42),
-                              ),
-                              dataModuleStyle: const QrDataModuleStyle(
-                                dataModuleShape: QrDataModuleShape.square,
-                                color: Colors.black,
-                              ),
-                              errorStateBuilder: (ctx, err) {
-                                return const Center(
-                                  child: Text(
-                                    "Error al generar el QR",
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(8),
+                child: QrImageView(
+                  data: userId ?? 'Usuario no identificado',
+                  version: QrVersions.auto,
+                  backgroundColor: Colors.white,
+                  eyeStyle: const QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: Color(0xFFFF8C42),
                   ),
-
-                  // PIN Display with 4 distinct boxes
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ...List.generate(pinLength, (index) {
-                        return Container(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                          ), // Slightly reduced margin
-                          width: pinBoxSize,
-                          height: pinBoxSize,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                              8,
-                            ), // Square boxes with rounded corners
-                            color: Colors.transparent,
-                            border: Border.all(
-                              color: const Color(0xFFFF8C42),
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFFF8C42).withOpacity(0.2),
-                                spreadRadius: 1,
-                                blurRadius: 3,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child:
-                                index < _displayPin.length
-                                    ? Text(
-                                      "•",
-                                      style: TextStyle(
-                                        fontSize: pinBoxSize * 0.6,
-                                        fontWeight: FontWeight.bold,
-                                        color: const Color(0xFFFF8C42),
-                                      ),
-                                    )
-                                    : null,
-                          ),
-                        );
-                      }),
-                    ],
+                  dataModuleStyle: const QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: Colors.black,
                   ),
-
-                  SizedBox(height: screenHeight * 0.03), // Reduced spacing
-                  // Number Pad with square buttons - optimized spacing to avoid scrolling
-                  Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildSquareButton('1', buttonSize),
-                          const SizedBox(
-                            width: 25,
-                          ), // Reduced spacing to avoid scrolling
-                          _buildSquareButton('2', buttonSize),
-                          const SizedBox(
-                            width: 25,
-                          ), // Reduced spacing to avoid scrolling
-                          _buildSquareButton('3', buttonSize),
-                        ],
+                  errorStateBuilder: (ctx, err) {
+                    return const Center(
+                      child: Text(
+                        "Error al generar el QR",
+                        style: TextStyle(color: Colors.red),
                       ),
-                      const SizedBox(
-                        height: 15,
-                      ), // Smaller spacing to avoid scrolling
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildSquareButton('4', buttonSize),
-                          const SizedBox(
-                            width: 25,
-                          ), // Reduced spacing to avoid scrolling
-                          _buildSquareButton('5', buttonSize),
-                          const SizedBox(
-                            width: 25,
-                          ), // Reduced spacing to avoid scrolling
-                          _buildSquareButton('6', buttonSize),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 15,
-                      ), // Smaller spacing to avoid scrolling
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildSquareButton('7', buttonSize),
-                          const SizedBox(
-                            width: 25,
-                          ), // Reduced spacing to avoid scrolling
-                          _buildSquareButton('8', buttonSize),
-                          const SizedBox(
-                            width: 25,
-                          ), // Reduced spacing to avoid scrolling
-                          _buildSquareButton('9', buttonSize),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 15,
-                      ), // Smaller spacing to avoid scrolling
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildSquareFunctionButton(
-                            Icons.backspace,
-                            buttonSize,
-                            _removeDigit,
-                            const Color(0xFFFF8C42),
-                          ),
-                          const SizedBox(
-                            width: 25,
-                          ), // Reduced spacing to avoid scrolling
-                          _buildSquareButton('0', buttonSize),
-                          const SizedBox(
-                            width: 25,
-                          ), // Reduced spacing to avoid scrolling
-                          _buildSquareFunctionButton(
-                            Icons.clear,
-                            buttonSize,
-                            _clearPin,
-                            const Color(0xFFFF8C42),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: screenHeight * 0.02,
-                  ), // Reduced bottom padding
-                ],
+                    );
+                  },
+                ),
               ),
             ),
+          ),
 
-            // Botón de salir del modo tóten
-            Positioned(top: 24, right: 16, child: DesactivateTotenModeButton()),
-          ],
-        ),
+          // PIN Display
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ...List.generate(pinLength, (index) {
+                return Container(
+                  margin: EdgeInsets.symmetric(horizontal: pinBoxMargin),
+                  width: pinBoxSize,
+                  height: pinBoxSize,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.transparent,
+                    border: Border.all(
+                      color: const Color(0xFFFF8C42),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFF8C42).withOpacity(0.2),
+                        spreadRadius: 1,
+                        blurRadius: 3,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child:
+                        index < _displayPin.length
+                            ? Text(
+                              "•",
+                              style: TextStyle(
+                                fontSize: pinBoxSize * 0.6,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFFFF8C42),
+                              ),
+                            )
+                            : null,
+                  ),
+                );
+              }),
+            ],
+          ),
+
+          SizedBox(height: screenHeight * 0.02),
+
+          // Number Pad
+          Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildSquareButton('1', buttonSize),
+                  SizedBox(width: buttonSpacing),
+                  _buildSquareButton('2', buttonSize),
+                  SizedBox(width: buttonSpacing),
+                  _buildSquareButton('3', buttonSize),
+                ],
+              ),
+              SizedBox(height: rowSpacing),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildSquareButton('4', buttonSize),
+                  SizedBox(width: buttonSpacing),
+                  _buildSquareButton('5', buttonSize),
+                  SizedBox(width: buttonSpacing),
+                  _buildSquareButton('6', buttonSize),
+                ],
+              ),
+              SizedBox(height: rowSpacing),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildSquareButton('7', buttonSize),
+                  SizedBox(width: buttonSpacing),
+                  _buildSquareButton('8', buttonSize),
+                  SizedBox(width: buttonSpacing),
+                  _buildSquareButton('9', buttonSize),
+                ],
+              ),
+              SizedBox(height: rowSpacing),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildSquareFunctionButton(
+                    Icons.backspace,
+                    buttonSize,
+                    _removeDigit,
+                    const Color(0xFFFF8C42),
+                  ),
+                  SizedBox(width: buttonSpacing),
+                  _buildSquareButton('0', buttonSize),
+                  SizedBox(width: buttonSpacing),
+                  _buildSquareFunctionButton(
+                    Icons.clear,
+                    buttonSize,
+                    _clearPin,
+                    const Color(0xFFFF8C42),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: screenHeight * 0.02),
+        ],
       ),
     );
   }

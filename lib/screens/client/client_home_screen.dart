@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gym_app/widgets/ActivateTotenModeButton.dart';
+import 'package:gym_app/screens/client/client_workouts_screen.dart';
 
 class ClientHomeScreen extends StatefulWidget {
   const ClientHomeScreen({super.key});
@@ -68,7 +69,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           IconButton(
             icon: const Icon(Icons.person, color: Color(0xFFFF8C42)),
             onPressed: () {
-              // TODO: Implementar perfil
+              Navigator.pushNamed(context, '/user-profile');
             },
           ),
           const SizedBox(width: 8),
@@ -106,81 +107,86 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                 'Planes de\nEntrenamiento',
                 'assets/memberships/medium.jpg',
                 () {
-                  // TODO: Navegar a la página de planes
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ClientWorkoutsScreen(),
+                    ),
+                  );
                 },
               ),
-              const SizedBox(height: 32),
-              const Text(
-                'Asistencia',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              const SizedBox(height: 20),
+              // const SizedBox(height: 32),
+              // const Text(
+              //   'Asistencia',
+              //   style: TextStyle(
+              //     color: Colors.grey,
+              //     fontSize: 14,
+              //     fontWeight: FontWeight.w400,
+              //   ),
+              // ),
+              // const SizedBox(height: 20),
               Row(
                 children: [
-                  Expanded(
-                    child: _buildSmallCard(
-                      'Asistencia',
-                      'assets/memberships/basic.jpg',
-                      () {
-                        // TODO: Navegar a la página de asistencia
-                      },
-                    ),
-                  ),
+                  // Expanded(
+                  //   child: _buildSmallCard(
+                  //     'Asistencia',
+                  //     'assets/memberships/basic.jpg',
+                  //     () {
+                  //       // TODO: Navegar a la página de asistencia
+                  //     },
+                  //   ),
+                  // ),
                   const SizedBox(width: 20),
-                  Expanded(
-                    child: _buildSmallCard(
-                      'Escanear QR',
-                      'assets/memberships/basic.jpg',
-                      () async {
-                        // Navigate and wait for result
-                        final result = await Navigator.pushNamed(
-                          context,
-                          '/qr-scanner',
-                        );
-                        // After returning, rebuild screen to refresh data
-                        if (context.mounted) {
-                          setState(() {});
+                  // Expanded(
+                  //   child: _buildSmallCard(
+                  //     'Escanear QR',
+                  //     'assets/memberships/basic.jpg',
+                  //     () async {
+                  //       // Navigate and wait for result
+                  //       final result = await Navigator.pushNamed(
+                  //         context,
+                  //         '/qr-scanner',
+                  //       );
+                  //       // After returning, rebuild screen to refresh data
+                  //       if (context.mounted) {
+                  //         setState(() {});
 
-                          // Show success message if check-in was successful
-                          if (result == true) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.check_circle,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    const Text(
-                                      'Check-in realizado con éxito',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                backgroundColor: Colors.green,
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 10,
-                                ),
-                              ),
-                            );
-                          }
-                        }
-                      },
-                    ),
-                  ),
+                  //         // Show success message if check-in was successful
+                  //         if (result == true) {
+                  //           ScaffoldMessenger.of(context).showSnackBar(
+                  //             SnackBar(
+                  //               content: Row(
+                  //                 children: [
+                  //                   const Icon(
+                  //                     Icons.check_circle,
+                  //                     color: Colors.white,
+                  //                   ),
+                  //                   const SizedBox(width: 12),
+                  //                   const Text(
+                  //                     'Check-in realizado con éxito',
+                  //                     style: TextStyle(
+                  //                       fontSize: 16,
+                  //                       fontWeight: FontWeight.bold,
+                  //                     ),
+                  //                   ),
+                  //                 ],
+                  //               ),
+                  //               backgroundColor: Colors.green,
+                  //               behavior: SnackBarBehavior.floating,
+                  //               shape: RoundedRectangleBorder(
+                  //                 borderRadius: BorderRadius.circular(10),
+                  //               ),
+                  //               margin: const EdgeInsets.symmetric(
+                  //                 horizontal: 20,
+                  //                 vertical: 10,
+                  //               ),
+                  //             ),
+                  //           );
+                  //         }
+                  //       }
+                  //     },
+                  //   ),
+                  // ),
                 ],
               ),
               const SizedBox(height: 20),
