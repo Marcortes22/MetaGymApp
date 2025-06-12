@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import '../../../services/user_service.dart';
+import '../../../services/membership_service.dart';
+import '../../../models/membership.dart';
 
 class CreateClientScreen extends StatefulWidget {
   const CreateClientScreen({Key? key}) : super(key: key);
@@ -13,6 +15,7 @@ class CreateClientScreen extends StatefulWidget {
 class _CreateClientScreenState extends State<CreateClientScreen> {
   final _formKey = GlobalKey<FormState>();
   final _userService = UserService();
+  final _membershipService = MembershipService();
 
   String _name = '';
   String _surname1 = '';
@@ -22,11 +25,45 @@ class _CreateClientScreenState extends State<CreateClientScreen> {
   String _password = '';
   String _height = '';
   String _weight = '';
+  String? _selectedMembershipId;
 
   bool _isLoading = false;
+  List<Membership> _memberships = [];
+  bool _loadingMemberships = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMemberships();
+  }
+
+  Future<void> _loadMemberships() async {
+    try {
+      final memberships = await _membershipService.getAllMemberships();
+      setState(() {
+        _memberships = memberships;
+        _loadingMemberships = false;
+      });
+    } catch (e) {
+      print('Error loading memberships: $e');
+      setState(() {
+        _loadingMemberships = false;
+      });
+    }
+  }
 
   Future<void> _handleSubmit() async {
     if (_formKey.currentState!.validate()) {
+      if (_selectedMembershipId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Por favor seleccione una membresía'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
       _formKey.currentState!.save();
       setState(() => _isLoading = true);
 
@@ -36,7 +73,7 @@ class _CreateClientScreenState extends State<CreateClientScreen> {
           {'id': 'cli', 'name': 'Cliente'},
         ];
 
-        // Crear usuario en Auth y Firestore (height y weight se agregarán luego)
+        // Crear usuario en Auth y Firestore
         await _userService.createUser(
           email: _email.trim(),
           password: _password,
@@ -51,7 +88,7 @@ class _CreateClientScreenState extends State<CreateClientScreen> {
         final newUser = auth.FirebaseAuth.instance.currentUser;
         if (newUser != null) {
           final userId = newUser.uid;
-          // Actualizar altura y peso en Firestore
+          // Actualizar altura, peso y membresía en Firestore
           final heightVal = int.tryParse(_height) ?? 0;
           final weightVal = int.tryParse(_weight) ?? 0;
           await FirebaseFirestore.instance
@@ -60,6 +97,24 @@ class _CreateClientScreenState extends State<CreateClientScreen> {
               .update({
             'height': heightVal,
             'weight': weightVal,
+            'membershipId': _selectedMembershipId,
+          });
+
+          // Crear suscripción para el usuario
+          final selectedMembership = _memberships.firstWhere(
+              (m) => m.id == _selectedMembershipId);
+
+          final now = DateTime.now();
+          await FirebaseFirestore.instance.collection('subscriptions').add({
+            'userId': userId,
+            'membershipId': _selectedMembershipId,
+            'startDate': now,
+            'endDate': now.add(Duration(days: selectedMembership.durationDays)),
+            'status': 'active',
+            'type': 'regular',
+            'paymentAmount': selectedMembership.price,
+            'paymentDate': now,
+            'createdAt': now,
           });
         }
 
@@ -333,6 +388,56 @@ class _CreateClientScreenState extends State<CreateClientScreen> {
                         },
                         onSaved: (value) => _password = value ?? '',
                       ),
+                      const SizedBox(height: 24),
+
+                      // Selector de Membresía
+                      if (_loadingMemberships)
+                        const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF8C42)),
+                          ),
+                        )
+                      else if (_memberships.isEmpty)
+                        const Text(
+                          'No hay membresías disponibles',
+                          style: TextStyle(color: Colors.red),
+                        )
+                      else
+                        DropdownButtonFormField<String>(
+                          value: _selectedMembershipId,
+                          decoration: InputDecoration(
+                            labelText: 'Membresía *',
+                            labelStyle: TextStyle(color: Colors.grey[400]),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey[700]!),
+                            ),
+                            focusedBorder: const UnderlineInputBorder(
+                              borderSide: BorderSide(color: Color(0xFFFF8C42)),
+                            ),
+                          ),
+                          style: const TextStyle(color: Colors.white),
+                          dropdownColor: const Color(0xFF1A1A1A),
+                          items: _memberships.map((membership) {
+                            return DropdownMenuItem<String>(
+                              value: membership.id,
+                              child: Text(
+                                '${membership.name} - \$${membership.price} (${membership.durationDays} días)',
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedMembershipId = newValue;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor seleccione una membresía';
+                            }
+                            return null;
+                          },
+                        ),
                     ],
                   ),
                 ),

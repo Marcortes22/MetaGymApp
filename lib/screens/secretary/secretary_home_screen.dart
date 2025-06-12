@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gym_app/screens/secretary/client_list_screen.dart';
+import 'package:gym_app/screens/secretary/subscription_renewal_screen.dart';
 
 class SecretaryHomeScreen extends StatelessWidget {
   const SecretaryHomeScreen({Key? key}) : super(key: key);
@@ -111,9 +112,13 @@ class SecretaryHomeScreen extends StatelessWidget {
             const SizedBox(height: 16),
             _buildOptionCard(
               'Renovar Suscripción',
-              'assets/memberships/premium.jpg',
-              onTap: () {
-                // TODO: Navegar a pantalla de renovación de suscripción
+              'assets/memberships/premium.jpg',              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SubscriptionRenewalScreen(),
+                  ),
+                );
               },
               height: 200,
             ),
