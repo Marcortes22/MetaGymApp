@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gym_app/screens/secretary/client_list_screen.dart';
+import 'package:gym_app/widgets/KioskModeModal.dart';
+import 'package:gym_app/widgets/ActivateTotenModeButton.dart';
 
 class SecretaryHomeScreen extends StatelessWidget {
   const SecretaryHomeScreen({Key? key}) : super(key: key);
@@ -9,10 +11,11 @@ class SecretaryHomeScreen extends StatelessWidget {
   Future<String> _getUserName() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(currentUser.uid)
-          .get();
+      final userDoc =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(currentUser.uid)
+              .get();
       if (userDoc.exists) {
         return "Hola, ${userDoc.data()?['name'] ?? 'Secretaria'}";
       }
@@ -56,7 +59,10 @@ class SecretaryHomeScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none, color: Color(0xFFFF8C42)),
+            icon: const Icon(
+              Icons.notifications_none,
+              color: Color(0xFFFF8C42),
+            ),
             onPressed: () {
               // TODO: acción para notificaciones globales
             },
@@ -75,6 +81,39 @@ class SecretaryHomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ======== Sección "Modo Asistencia" ========
+            const Text(
+              'Modo Asistencia',
+              style: TextStyle(
+                color: Colors.white54,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildOptionCard(
+              'Activar Modo Asistencia',
+              'assets/workouts/functional.jpg',
+              onTap: () {
+                // Show the KioskModeModal
+                showDialog(
+                  context: context,
+                  builder: (BuildContext dialogContext) {
+                    return KioskModeModal(
+                      onConfirm: () {
+                        Navigator.of(dialogContext).pop();
+                        final totenModeButton = ActivateTotenModeButton();
+                        totenModeButton.activarModoTotenYDeslogear(context);
+                      },
+                      onCancel: () => Navigator.of(dialogContext).pop(),
+                    );
+                  },
+                );
+              },
+              height: 120,
+            ),
+            const SizedBox(height: 24),
+
             // ======== Sección "Creación de clientes" ========
             const Text(
               'Creación de clientes',
@@ -118,24 +157,24 @@ class SecretaryHomeScreen extends StatelessWidget {
               height: 200,
             ),
             const SizedBox(height: 16),
-            // ======== Sección "Historial de asistencia" ========
-            const Text(
-              'Historial de asistencia',
-              style: TextStyle(
-                color: Colors.white54,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildOptionCard(
-              'Ver Historial',
-              'assets/workouts/cardio.jpg',
-              onTap: () {
-                // TODO: Navegar a pantalla de historial de asistencias
-              },
-              height: 200,
-            ),
+            // // ======== Sección "Historial de asistencia" ========
+            // const Text(
+            //   'Historial de asistencia',
+            //   style: TextStyle(
+            //     color: Colors.white54,
+            //     fontSize: 14,
+            //     fontWeight: FontWeight.w500,
+            //   ),
+            // ),
+            // const SizedBox(height: 16),
+            // _buildOptionCard(
+            //   'Ver Historial',
+            //   'assets/workouts/cardio.jpg',
+            //   onTap: () {
+            //     // TODO: Navegar a pantalla de historial de asistencias
+            //   },
+            //   height: 200,
+            // ),
           ],
         ),
       ),
