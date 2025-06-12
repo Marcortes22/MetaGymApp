@@ -57,21 +57,11 @@ class SecretaryHomeScreen extends StatelessWidget {
               ],
             );
           },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.notifications_none,
-              color: Color(0xFFFF8C42),
-            ),
-            onPressed: () {
-              // TODO: acción para notificaciones globales
-            },
-          ),
+        ),        actions: [
           IconButton(
             icon: const Icon(Icons.person_outline, color: Color(0xFFFF8C42)),
             onPressed: () {
-              // TODO: perfil de secretaria
+              Navigator.pushNamed(context, '/user-profile');
             },
           ),
           const SizedBox(width: 8),

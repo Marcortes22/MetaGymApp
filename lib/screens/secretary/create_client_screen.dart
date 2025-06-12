@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import '../../../services/user_service.dart';
 import '../../../services/membership_service.dart';
 import '../../../models/membership.dart';
+import 'weight_selection_screen.dart';
+import 'height_selection_screen.dart';
 
 class CreateClientScreen extends StatefulWidget {
   const CreateClientScreen({Key? key}) : super(key: key);
@@ -26,6 +28,8 @@ class _CreateClientScreenState extends State<CreateClientScreen> {
   String _height = '';
   String _weight = '';
   String? _selectedMembershipId;
+  DateTime? _birthDate;
+  late String _pin;
 
   bool _isLoading = false;
   List<Membership> _memberships = [];
@@ -35,6 +39,8 @@ class _CreateClientScreenState extends State<CreateClientScreen> {
   void initState() {
     super.initState();
     _loadMemberships();
+    // Generate PIN automatically
+    _pin = (1000 + DateTime.now().millisecond + DateTime.now().microsecond % 9000).toString();
   }
 
   Future<void> _loadMemberships() async {
@@ -64,6 +70,16 @@ class _CreateClientScreenState extends State<CreateClientScreen> {
         return;
       }
 
+      if (_birthDate == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Por favor seleccione la fecha de nacimiento'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
       _formKey.currentState!.save();
       setState(() => _isLoading = true);
 
@@ -73,7 +89,6 @@ class _CreateClientScreenState extends State<CreateClientScreen> {
           {'id': 'cli', 'name': 'Cliente'},
         ];
 
-        // Crear usuario en Auth y Firestore
         await _userService.createUser(
           email: _email.trim(),
           password: _password,
@@ -88,40 +103,40 @@ class _CreateClientScreenState extends State<CreateClientScreen> {
         final newUser = auth.FirebaseAuth.instance.currentUser;
         if (newUser != null) {
           final userId = newUser.uid;
-          // Actualizar altura, peso y membresía en Firestore
+          // Actualizar altura, peso, membresía y PIN en Firestore
           final heightVal = int.tryParse(_height) ?? 0;
-          final weightVal = int.tryParse(_weight) ?? 0;
-          await FirebaseFirestore.instance
+          final weightVal = int.tryParse(_weight) ?? 0;          await FirebaseFirestore.instance
               .collection('users')
               .doc(userId)
               .update({
             'height': heightVal,
             'weight': weightVal,
             'membershipId': _selectedMembershipId,
+            'pin': _pin,            'dateOfBirth': _birthDate!.toIso8601String().split('T')[0],
+            'createdAt': DateTime.now().toIso8601String().split('T')[0],
           });
 
           // Crear suscripción para el usuario
           final selectedMembership = _memberships.firstWhere(
-              (m) => m.id == _selectedMembershipId);
-
-          final now = DateTime.now();
+              (m) => m.id == _selectedMembershipId);          final now = DateTime.now();
           await FirebaseFirestore.instance.collection('subscriptions').add({
             'userId': userId,
             'membershipId': _selectedMembershipId,
-            'startDate': now,
-            'endDate': now.add(Duration(days: selectedMembership.durationDays)),
+            'startDate': Timestamp.fromDate(now),
+            'endDate': Timestamp.fromDate(now.add(Duration(days: selectedMembership.durationDays))),
             'status': 'active',
             'type': 'regular',
             'paymentAmount': selectedMembership.price,
-            'paymentDate': now,
-            'createdAt': now,
+            'paymentDate': Timestamp.fromDate(now),
+            'createdAt': Timestamp.fromDate(now),
           });
         }
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cliente creado exitosamente'),
+          SnackBar(
+            content: Text('Cliente creado exitosamente.\nPIN asignado: $_pin'),
+            duration: const Duration(seconds: 5),
             backgroundColor: Colors.green,
           ),
         );
@@ -258,6 +273,54 @@ class _CreateClientScreenState extends State<CreateClientScreen> {
                       ),
                       const SizedBox(height: 16),
 
+                      // Fecha de Nacimiento
+                      InkWell(
+                        onTap: () async {
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime(2000),
+                            firstDate: DateTime(1920),
+                            lastDate: DateTime.now(),
+                            builder: (context, child) {
+                              return Theme(
+                                data: Theme.of(context).copyWith(
+                                  colorScheme: const ColorScheme.dark(
+                                    primary: Color(0xFFFF8C42),
+                                    onPrimary: Colors.white,
+                                    surface: Color(0xFF2A2A2A),
+                                    onSurface: Colors.white,
+                                  ),
+                                  dialogBackgroundColor: const Color(0xFF1A1A1A),
+                                ),
+                                child: child!,
+                              );
+                            },
+                          );
+                          if (date != null) {
+                            setState(() {
+                              _birthDate = date;
+                            });
+                          }
+                        },
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: 'Fecha de Nacimiento *',
+                            labelStyle: TextStyle(color: Colors.grey[400]),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey[700]!),
+                            ),
+                          ),
+                          child: Text(                            _birthDate == null
+                                ? 'Seleccionar fecha'
+                                : '${_birthDate!.year}-${_birthDate!.month.toString().padLeft(2, '0')}-${_birthDate!.day.toString().padLeft(2, '0')}',
+                            style: TextStyle(
+                              color: _birthDate == null ? Colors.grey[400] : Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
                       // Teléfono
                       TextFormField(
                         decoration: InputDecoration(
@@ -280,59 +343,69 @@ class _CreateClientScreenState extends State<CreateClientScreen> {
                         },
                         onSaved: (value) => _phone = value ?? '',
                       ),
-                      const SizedBox(height: 16),
-
-                      // Altura
-                      TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'Altura (cm) *',
-                          labelStyle: TextStyle(color: Colors.grey[400]),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey[700]!),
+                      const SizedBox(height: 16),                      // Altura
+                      InkWell(
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HeightSelectionScreen(),
+                            ),
+                          );
+                          if (result != null && mounted) {
+                            setState(() {
+                              _height = result['height'].toString();
+                            });
+                          }
+                        },
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: 'Altura *',
+                            labelStyle: TextStyle(color: Colors.grey[400]),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey[700]!),
+                            ),
                           ),
-                          focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFFFF8C42)),
+                          child: Text(
+                            _height.isEmpty ? 'Seleccionar altura' : '$_height cm',
+                            style: TextStyle(
+                              color: _height.isEmpty ? Colors.grey[400] : Colors.white,
+                            ),
                           ),
                         ),
-                        style: const TextStyle(color: Colors.white),
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor ingrese la altura';
-                          }
-                          if (int.tryParse(value) == null) {
-                            return 'Ingrese un número válido';
-                          }
-                          return null;
-                        },
-                        onSaved: (value) => _height = value ?? '',
                       ),
                       const SizedBox(height: 16),
 
                       // Peso
-                      TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'Peso (kg) *',
-                          labelStyle: TextStyle(color: Colors.grey[400]),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey[700]!),
+                      InkWell(
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const WeightSelectionScreen(),
+                            ),
+                          );
+                          if (result != null && mounted) {
+                            setState(() {
+                              _weight = result['weight'].toString();
+                            });
+                          }
+                        },
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: 'Peso *',
+                            labelStyle: TextStyle(color: Colors.grey[400]),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey[700]!),
+                            ),
                           ),
-                          focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFFFF8C42)),
+                          child: Text(
+                            _weight.isEmpty ? 'Seleccionar peso' : '$_weight kg',
+                            style: TextStyle(
+                              color: _weight.isEmpty ? Colors.grey[400] : Colors.white,
+                            ),
                           ),
                         ),
-                        style: const TextStyle(color: Colors.white),
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor ingrese el peso';
-                          }
-                          if (int.tryParse(value) == null) {
-                            return 'Ingrese un número válido';
-                          }
-                          return null;
-                        },
-                        onSaved: (value) => _weight = value ?? '',
                       ),
                       const SizedBox(height: 16),
 

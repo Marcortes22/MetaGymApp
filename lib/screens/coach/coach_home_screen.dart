@@ -63,18 +63,9 @@ class CoachHomeScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.notifications_none,
-              color: Color(0xFFFF8C42),
-            ),
-            onPressed: () {
-              // TODO: acción para notificaciones
-            },
-          ),
-          IconButton(
             icon: const Icon(Icons.person_outline, color: Color(0xFFFF8C42)),
             onPressed: () {
-              // TODO: acción para perfil
+              Navigator.pushNamed(context, '/user-profile');
             },
           ),
           const SizedBox(width: 8),
@@ -115,15 +106,15 @@ class CoachHomeScreen extends StatelessWidget {
 
               // Aquí navegamos a AssignRoutineScreen con Navigator.push
               _buildOptionCard(
-                'Asignar Rutina',
-                'assets/assign_routine.png',
+                'Crear Rutina',
+                'assets/workouts/functional.jpg',
                 onTap: () {
                   Navigator.pushNamed(context, AppRoutes.workouts);
                 },
               ),
               const SizedBox(height: 16),
               const Text(
-                'Progreso',
+                'Rutinas',
                 style: TextStyle(
                   color: Colors.white54,
                   fontSize: 14,
@@ -132,8 +123,8 @@ class CoachHomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               _buildOptionCard(
-                'Ver Progreso',
-                'assets/progress.jpg',
+                'Asignar Rutinas',
+                'assets/memberships/medium.jpg',
                 onTap: () {
                   Navigator.pushNamed(context, AppRoutes.assignWorkouts);
                 },

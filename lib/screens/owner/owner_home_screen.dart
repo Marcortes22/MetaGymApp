@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gym_app/routes/AppRoutes.dart';
-import 'package:gym_app/widgets/ActivateTotenModeButton.dart';
 
 class OwnerHomeScreen extends StatelessWidget {
   const OwnerHomeScreen({super.key});
@@ -57,16 +56,7 @@ class OwnerHomeScreen extends StatelessWidget {
               ],
             );
           },
-        ),
-        actions: [
-          const ActivateTotenModeButton(),
-          IconButton(
-            icon: const Icon(
-              Icons.notifications_none,
-              color: Color(0xFFFF8C42),
-            ),
-            onPressed: () {},
-          ),
+        ),        actions: [
           IconButton(
             icon: const Icon(Icons.person_outline, color: Color(0xFFFF8C42)),
             onPressed: () {
@@ -122,28 +112,11 @@ class OwnerHomeScreen extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildOptionCard(
-                      'Asistencias',
-                      'assets/memberships/basic.jpg',
-                      onTap:
-                          () => Navigator.pushNamed(context, '/all-attendance'),
-                      height: 160,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildOptionCard(
-                      'Pagos',
-                      'assets/memberships/premium.jpg',
-                      onTap: () {},
-                      height: 160,
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 16),              _buildOptionCard(
+                'Asistencias',
+                'assets/memberships/basic.jpg',
+                onTap: () => Navigator.pushNamed(context, '/all-attendance'),
+                height: 160,
               ),
               const SizedBox(height: 16),
             ],

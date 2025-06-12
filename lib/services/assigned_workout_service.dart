@@ -16,10 +16,21 @@ class AssignedWorkoutService {
         )
         .toList();
   }
-
   Future<AssignedWorkout> assignWorkout(AssignedWorkout workout) async {
     final doc = await _collection.add(workout.toMap());
     return AssignedWorkout.fromMap(doc.id, workout.toMap());
+  }
+
+  Future<void> completeWorkout(String userId, String workoutId) async {
+    final snapshot = await _collection
+        .where('userId', isEqualTo: userId)
+        .where('workoutId', isEqualTo: workoutId)
+        .get();
+    
+    if (snapshot.docs.isNotEmpty) {
+      final doc = snapshot.docs.first;
+      await _collection.doc(doc.id).update({'status': 'completed'});
+    }
   }
 
   Future<List<AssignedWorkout>> getByWorkout(String workoutId) async {
