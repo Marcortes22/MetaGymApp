@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:gym_app/widgets/ActivateTotenModeButton.dart';
 import 'package:gym_app/screens/client/client_workouts_screen.dart';
 
 class ClientHomeScreen extends StatefulWidget {
@@ -59,7 +58,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           },
         ),
         actions: [
-          const ActivateTotenModeButton(),
+          // const ActivateTotenModeButton(),
           IconButton(
             icon: const Icon(Icons.notifications, color: Color(0xFFFF8C42)),
             onPressed: () {
