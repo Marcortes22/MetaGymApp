@@ -60,7 +60,6 @@ class SubscriptionService {
     final now = DateTime.now();
     return subscription.endDate.isAfter(now);
   }
-
   // Calculate days remaining in subscription
   Future<int> getDaysRemainingInSubscription(String userId) async {
     final subscription = await getActiveSubscriptionForUser(userId);
@@ -73,6 +72,8 @@ class SubscriptionService {
       return 0;
     }
 
-    return subscription.endDate.difference(now).inDays;
+    // Calcular la diferencia incluyendo el día actual
+    final difference = subscription.endDate.difference(now);
+    return (difference.inHours / 24).ceil(); // Redondear hacia arriba para incluir el día actual
   }
 }

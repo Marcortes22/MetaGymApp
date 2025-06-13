@@ -113,12 +113,6 @@ class _ClientWorkoutsScreenState extends State<ClientWorkoutsScreen> {
         iconTheme: const IconThemeData(color: Color(0xFFFF8C42)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications, color: Color(0xFFFF8C42)),
-            onPressed: () {
-              // TODO: Implementar notificaciones
-            },
-          ),
-          IconButton(
             icon: const Icon(Icons.person, color: Color(0xFFFF8C42)),
             onPressed: () {
               Navigator.pushNamed(context, '/user-profile');

@@ -43,15 +43,27 @@ class _WorkoutDetailsScreenState extends State<WorkoutDetailsScreen> {
     super.initState();
     _loadExercises();
   }
-
   Future<void> _loadExercises() async {
-    final exerciseIds = widget.workout.exercises.map((e) => e.exerciseId).toList();
-    for (final id in exerciseIds) {
-      final exercise = await _exerciseService.getById(id);
-      if (exercise != null) {
-        setState(() {
-          _exercises[id] = exercise;
-        });
+    try {
+      final exerciseIds = widget.workout.exercises.map((e) => e.exerciseId).toList();
+      final exercisesFutures = exerciseIds.map((id) => _exerciseService.getById(id));
+      final exercises = await Future.wait(exercisesFutures);
+      
+      setState(() {
+        for (var i = 0; i < exerciseIds.length; i++) {
+          if (exercises[i] != null) {
+            _exercises[exerciseIds[i]] = exercises[i]!;
+          }
+        }
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al cargar los ejercicios'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

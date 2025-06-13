@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gym_app/screens/secretary/client_list_screen.dart';
 import 'package:gym_app/widgets/KioskModeModal.dart';
 import 'package:gym_app/widgets/ActivateTotenModeButton.dart';
+import 'package:gym_app/screens/secretary/subscription_renewal_screen.dart';
 
 class SecretaryHomeScreen extends StatelessWidget {
   const SecretaryHomeScreen({Key? key}) : super(key: key);
@@ -56,21 +57,11 @@ class SecretaryHomeScreen extends StatelessWidget {
               ],
             );
           },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.notifications_none,
-              color: Color(0xFFFF8C42),
-            ),
-            onPressed: () {
-              // TODO: acción para notificaciones globales
-            },
-          ),
+        ),        actions: [
           IconButton(
             icon: const Icon(Icons.person_outline, color: Color(0xFFFF8C42)),
             onPressed: () {
-              // TODO: perfil de secretaria
+              Navigator.pushNamed(context, '/user-profile');
             },
           ),
           const SizedBox(width: 8),
@@ -150,9 +141,13 @@ class SecretaryHomeScreen extends StatelessWidget {
             const SizedBox(height: 16),
             _buildOptionCard(
               'Renovar Suscripción',
-              'assets/memberships/premium.jpg',
-              onTap: () {
-                // TODO: Navegar a pantalla de renovación de suscripción
+              'assets/memberships/premium.jpg',              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SubscriptionRenewalScreen(),
+                  ),
+                );
               },
               height: 200,
             ),

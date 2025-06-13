@@ -8,16 +8,15 @@ import 'package:gym_app/screens/coach/coach_home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gym_app/screens/auth/no_role_screen.dart';
 import 'package:gym_app/screens/owner/owner_home_screen.dart';
-import 'package:gym_app/screens/secretary/secretary_home_screen.dart';
 import 'package:gym_app/screens/auth/role_selection_screen.dart';
 import 'package:gym_app/screens/secretary/secretary_home_screen.dart';
 import 'package:gym_app/screens/auth/welcome_screen.dart';
-import 'package:gym_app/services/auth_service.dart';
 import 'package:gym_app/routes/AppRoutes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 
 import 'package:gym_app/services/service_locator.dart';
+import 'package:gym_app/services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -105,6 +104,7 @@ class RootPage extends StatefulWidget {
 class _RootPageState extends State<RootPage> {
   bool _checkingTotenMode = true;
   bool _isTotenMode = false;
+  final _authService = AuthService();
 
   @override
   void initState() {
@@ -152,19 +152,13 @@ class _RootPageState extends State<RootPage> {
         final user = snapshot.data!;
 
         return FutureBuilder<List<String?>>(
-          future: getUserRoles(user.uid),
+          future: _authService.getUserRoles(user.uid),
           builder: (context, roleSnapshot) {
             if (roleSnapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               );
             }
-
-            // if (!roleSnapshot.hasData || roleSnapshot.data == null) {
-            //   return const Scaffold(
-            //     body: Center(child: Text("Rol no encontrado.")),
-            //   );
-            // }
 
             final roles = roleSnapshot.data ?? [];
 

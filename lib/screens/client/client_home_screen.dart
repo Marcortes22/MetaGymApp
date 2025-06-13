@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gym_app/screens/client/client_workouts_screen.dart';
+import 'package:gym_app/services/subscription_service.dart';
+import 'package:gym_app/services/membership_service.dart';
+import 'package:gym_app/routes/AppRoutes.dart';
 
 class ClientHomeScreen extends StatefulWidget {
   const ClientHomeScreen({super.key});
@@ -11,6 +14,9 @@ class ClientHomeScreen extends StatefulWidget {
 }
 
 class _ClientHomeScreenState extends State<ClientHomeScreen> {
+  final _subscriptionService = SubscriptionService();
+  final _membershipService = MembershipService();
+
   Future<String> _getUserName() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -22,6 +28,132 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
       return userData.data()?['name'] ?? 'Cliente';
     }
     return 'Cliente';
+  }
+
+  Future<Map<String, dynamic>> _getMembershipInfo() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return {
+        'isValid': false,
+        'membershipName': 'Sin membresía',
+        'endDate': '',
+        'daysRemaining': 0,
+      };
+    }
+
+    try {
+      final subscription = await _subscriptionService.getActiveSubscriptionForUser(user.uid);
+      if (subscription == null) {
+        return {
+          'isValid': false,
+          'membershipName': 'Sin membresía',
+          'endDate': '',
+          'daysRemaining': 0,
+        };
+      }
+
+      final membership = await _membershipService.getMembershipById(subscription.membershipId);
+      final daysRemaining = await _subscriptionService.getDaysRemainingInSubscription(user.uid);
+      final endDate = subscription.endDate;
+
+      return {
+        'isValid': daysRemaining > 0,
+        'membershipName': membership?.name ?? 'Membresía',
+        'endDate': '${endDate.day}/${endDate.month}/${endDate.year}',
+        'daysRemaining': daysRemaining,
+      };
+    } catch (e) {
+      print('Error getting membership info: $e');
+      return {
+        'isValid': false,
+        'membershipName': 'Error al cargar membresía',
+        'endDate': '',
+        'daysRemaining': 0,
+      };
+    }
+  }
+
+  Widget _buildMembershipCard(Map<String, dynamic> membershipInfo) {
+    final isValid = membershipInfo['isValid'] as bool;
+    final membershipName = membershipInfo['membershipName'] as String;
+    final endDate = membershipInfo['endDate'] as String;
+    final daysRemaining = membershipInfo['daysRemaining'] as int;
+
+    return Container(
+      height: 180,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        image: const DecorationImage(
+          image: AssetImage('assets/memberships/premium.jpg'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
+          ),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  membershipName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isValid ? Colors.green : Colors.red,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    isValid ? 'Activa' : 'Inactiva',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (endDate.isNotEmpty) Text(
+                  'Vence: $endDate',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                  ),
+                ),
+                if (daysRemaining > 0) Text(
+                  'Días restantes: $daysRemaining',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -56,15 +188,8 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
               ],
             );
           },
-        ),
-        actions: [
+        ),        actions: [
           // const ActivateTotenModeButton(),
-          IconButton(
-            icon: const Icon(Icons.notifications, color: Color(0xFFFF8C42)),
-            onPressed: () {
-              // TODO: Implementar notificaciones
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.person, color: Color(0xFFFF8C42)),
             onPressed: () {
@@ -79,8 +204,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
+            children: [              const Text(
                 'Tu progreso',
                 style: TextStyle(
                   color: Colors.grey,
@@ -89,8 +213,8 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              _buildCard('Progreso', 'assets/memberships/premium.jpg', () {
-                // TODO: Navegar a la página de rutinas
+              _buildCard('Progreso', 'assets/workouts/full_body.jpg', () {
+                Navigator.pushNamed(context, AppRoutes.clientProgress);
               }),
               const SizedBox(height: 32),
               const Text(
@@ -114,81 +238,44 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                   );
                 },
               ),
-              // const SizedBox(height: 32),
-              // const Text(
-              //   'Asistencia',
-              //   style: TextStyle(
-              //     color: Colors.grey,
-              //     fontSize: 14,
-              //     fontWeight: FontWeight.w400,
-              //   ),
-              // ),
-              // const SizedBox(height: 20),
-              Row(
-                children: [
-                  // Expanded(
-                  //   child: _buildSmallCard(
-                  //     'Asistencia',
-                  //     'assets/memberships/basic.jpg',
-                  //     () {
-                  //       // TODO: Navegar a la página de asistencia
-                  //     },
-                  //   ),
-                  // ),
-                  const SizedBox(width: 20),
-                  // Expanded(
-                  //   child: _buildSmallCard(
-                  //     'Escanear QR',
-                  //     'assets/memberships/basic.jpg',
-                  //     () async {
-                  //       // Navigate and wait for result
-                  //       final result = await Navigator.pushNamed(
-                  //         context,
-                  //         '/qr-scanner',
-                  //       );
-                  //       // After returning, rebuild screen to refresh data
-                  //       if (context.mounted) {
-                  //         setState(() {});
-
-                  //         // Show success message if check-in was successful
-                  //         if (result == true) {
-                  //           ScaffoldMessenger.of(context).showSnackBar(
-                  //             SnackBar(
-                  //               content: Row(
-                  //                 children: [
-                  //                   const Icon(
-                  //                     Icons.check_circle,
-                  //                     color: Colors.white,
-                  //                   ),
-                  //                   const SizedBox(width: 12),
-                  //                   const Text(
-                  //                     'Check-in realizado con éxito',
-                  //                     style: TextStyle(
-                  //                       fontSize: 16,
-                  //                       fontWeight: FontWeight.bold,
-                  //                     ),
-                  //                   ),
-                  //                 ],
-                  //               ),
-                  //               backgroundColor: Colors.green,
-                  //               behavior: SnackBarBehavior.floating,
-                  //               shape: RoundedRectangleBorder(
-                  //                 borderRadius: BorderRadius.circular(10),
-                  //               ),
-                  //               margin: const EdgeInsets.symmetric(
-                  //                 horizontal: 20,
-                  //                 vertical: 10,
-                  //               ),
-                  //             ),
-                  //           );
-                  //         }
-                  //       }
-                  //     },
-                  //   ),
-                  // ),
-                ],
+              const SizedBox(height: 32),
+              const Text(
+                'Estado de Membresía',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                ),
               ),
               const SizedBox(height: 20),
+              FutureBuilder<Map<String, dynamic>>(
+                future: _getMembershipInfo(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF8C42)),
+                      ),
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text(
+                        'Error al cargar la membresía',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }
+
+                  return _buildMembershipCard(snapshot.data ?? {
+                    'isValid': false,
+                    'membershipName': 'Error',
+                    'endDate': '',
+                    'daysRemaining': 0,
+                  });
+                },
+              ),
             ],
           ),
         ),
