@@ -24,12 +24,12 @@ class WelcomeScreen extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            // ElevatedButton(
-            //   onPressed: () async {
-            //     await createFakeGymData();
-            //   },
-            //   child: const Text('Crear Datos Fake'),
-            // ),
+            ElevatedButton(
+              onPressed: () async {
+                await createFakeGymData();
+              },
+              child: const Text('Crear Datos Fake'),
+            ),
             const SizedBox(height: 80),
             const Text(
               'BIENVENIDO Al',
