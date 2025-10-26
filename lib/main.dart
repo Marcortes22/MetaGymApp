@@ -20,10 +20,31 @@ import 'package:gym_app/services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialize service locator
+  // .env opcional - no bloquea si falta
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint("⚠️ .env no encontrado o vacío: $e");
+  }
+
+  // Inicializar Firebase solo si no existe ninguna app
+  // Esto previene el error duplicate-app en hot restart
+  if (Firebase.apps.isEmpty) {
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      debugPrint("✅ Firebase inicializado correctamente");
+    } catch (e) {
+      debugPrint("❌ Error al inicializar Firebase: $e");
+    }
+  } else {
+    debugPrint(
+      "✅ Firebase ya estaba inicializado (${Firebase.apps.length} apps)",
+    );
+  }
+
   ServiceLocator.setupServices();
 
   final prefs = await SharedPreferences.getInstance();

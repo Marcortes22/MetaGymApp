@@ -13,25 +13,30 @@
 ## 🧩 Funcionalidades Principales
 
 ### 👤 Gestión de Usuarios
+
 - Registro e inicio de sesión con autenticación segura.
 - Perfiles personalizados con datos como edad, peso, altura, plan activo.
 - Consulta de historial de asistencia y pagos.
 
 ### 📅 Planes y Suscripciones
+
 - Creación y asignación de planes (mensual, trimestral, anual).
 - Notificaciones por vencimiento.
 - Control detallado de pagos y fechas de renovación.
 
 ### 📍 Control de Asistencia
+
 - Registro de entradas/salidas con QR o PIN.
 - Historial de visitas disponible para cada usuario.
 
 ### 🏋️ Gestión de Entrenamientos
+
 - Rutinas personalizadas según objetivos del usuario.
 - Seguimiento del progreso (peso levantado, repeticiones, etc.).
 - Instrucciones visuales (imágenes/videos) para cada ejercicio.
 
 ### 🧑‍🏫 Administración del Gimnasio
+
 - Gestión de instructores y horarios.
 - Reportes generales: asistencia, ingresos, desempeño de usuarios.
 
@@ -39,11 +44,11 @@
 
 ## 📌 Prioridad de Requerimientos
 
-| Prioridad | Funcionalidades |
-|----------|------------------|
-| 🔴 Alta     | Autenticación, gestión de usuarios, planes, rutinas. |
-| 🟡 Media    | Reportes, notificaciones, seguimiento detallado. |
-| 🟢 Baja     | Funciones complementarias futuras como valoraciones y chat. |
+| Prioridad | Funcionalidades                                             |
+| --------- | ----------------------------------------------------------- |
+| 🔴 Alta   | Autenticación, gestión de usuarios, planes, rutinas.        |
+| 🟡 Media  | Reportes, notificaciones, seguimiento detallado.            |
+| 🟢 Baja   | Funciones complementarias futuras como valoraciones y chat. |
 
 ---
 
@@ -75,17 +80,11 @@ La aplicación utiliza **Firebase** como backend para las siguientes funcionalid
 
 > ✅ Firebase permite escalar la aplicación fácilmente, mantener la seguridad de los datos y reducir tiempos de desarrollo gracias a su integración fluida con Flutter.
 
-
+---
 
 ---
 
+## 🏫 Universidad Nacional
 
-
----
-
-## 🏫 Universidad Nacional  
 **Carrera**: Ingeniería en Sistemas de Información y Comunicación  
-**Curso**: Diseño y Programación de Plataformas Móviles  
-
-
-
+**Curso**: Diseño y Programación de Plataformas Móviles
